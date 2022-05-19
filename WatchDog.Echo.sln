@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WatchDog.Echo", "WatchDog.Echo\WatchDog.Echo.csproj", "{398F7CB2-9497-48D6-B9B3-54316F5CBB14}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoTest6", "EchoTest6\EchoTest6.csproj", "{9487DD4C-77FE-4830-8DE1-8A6903EEA1AD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{398F7CB2-9497-48D6-B9B3-54316F5CBB14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{398F7CB2-9497-48D6-B9B3-54316F5CBB14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{398F7CB2-9497-48D6-B9B3-54316F5CBB14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{398F7CB2-9497-48D6-B9B3-54316F5CBB14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9487DD4C-77FE-4830-8DE1-8A6903EEA1AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9487DD4C-77FE-4830-8DE1-8A6903EEA1AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9487DD4C-77FE-4830-8DE1-8A6903EEA1AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9487DD4C-77FE-4830-8DE1-8A6903EEA1AD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {790DA3BE-DE2C-4BE0-8113-0832237DAAF6}
+	EndGlobalSection
+EndGlobal

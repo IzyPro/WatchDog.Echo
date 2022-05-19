@@ -1,0 +1,12 @@
+﻿syntax = "proto3";
+
+service EchoRPCService{
+	rpc SendEcho(Empty) returns (EchoResponse);
+}
+
+message Empty {}
+
+message EchoResponse{
+	string message = 1;
+	int32 statusCode = 2;
+}
