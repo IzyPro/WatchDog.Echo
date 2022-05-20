@@ -7,7 +7,8 @@ namespace WatchDog.Echo.src.Models
     public class EchoSettings
     {
         public long EchoIntervalInMinutes { get; set; }
-        public string HostURLs { get; set; }
+        public string? HostURLs { get; set; }
+        public string? SlackChannelAddress { get; set; }
     }
 
     internal class EchoInterval
@@ -16,6 +17,11 @@ namespace WatchDog.Echo.src.Models
     }
     internal class MicroService
     {
-        public static string MicroServicesURL { get; set; }
+        public static string? MicroServicesURL { get; set; }
+    }
+
+    internal class WebHooks
+    {
+        public static string? SlackChannelHook { get; set; }  
     }
 }
