@@ -6,7 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddWatchDogEchoServices(opt => { opt.EchoIntervalInMinutes = 1; opt.HostURLs = "https://localhost:7188, http://localhost:41560"; opt.SlackChannelAddress = "https://hooks.slack.com/services/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"; });
+builder.Services.AddControllers();
+//builder.Services.AddWatchDogEchoServices();
+builder.Services.AddWatchDogEchoServices(opt => { opt.EchoIntervalInMinutes = 0; opt.HostURLs = "https://localhost:7188, http://localhost:41560"; opt.WebhookURLs = "https://hooks.slack.com/services/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"; });
 
 var app = builder.Build();
 
@@ -18,12 +20,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
 
 var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
-app.UseWatchDogEcho();
+//app.UseWatchDogEcho();
 app.MapGet("/weatherforecast", () =>
 {
     var forecast = Enumerable.Range(1, 5).Select(index =>
@@ -37,6 +40,13 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}");
+});
 
 app.Run();
 

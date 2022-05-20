@@ -11,29 +11,24 @@ namespace WatchDog.Echo.src.Services
     {
         private readonly HttpClient _client;
 
-        private readonly string _slackBaseUrl;
-        private readonly string _slackChannelEndpoint;
-        public NotificationServices(string slackBaseUrl, string slackChannelEndpoint)
+        public NotificationServices()
         {
             _client = new HttpClient();
-            _slackBaseUrl = slackBaseUrl;   
-            _slackChannelEndpoint = slackChannelEndpoint;
         }
 
-        public async Task SendSlackNotificationAsync(string message)
+        public async Task SendWebhookNotificationAsync(string message, string webhookBaseUrl, string webhookEndpoint)
         {
-            _client.BaseAddress = new Uri(_slackBaseUrl);
+            _client.BaseAddress = new Uri(webhookBaseUrl);
             var contentObject = new { text = message };
             var contentObjectJson = JsonSerializer.Serialize(contentObject);
             var content = new StringContent(contentObjectJson, Encoding.UTF8, "application/json");
 
-            var result = await _client.PostAsync(_slackChannelEndpoint, content);
+            var result = await _client.PostAsync(webhookEndpoint, content);
             var resultContent = await result.Content.ReadAsStringAsync();
             if (!result.IsSuccessStatusCode)
             {
                 throw new Exception("Task failed.");
             }
-
         }
     }
 }
