@@ -6,7 +6,7 @@ namespace WatchDog.Echo.src.Utilities
 {
     internal static class GeneralHelper
     {
-        public static Tuple<string, string> SplitSlackHook(string webhook)
+        public static Tuple<string, string> SplitWebhook(string webhook)
         {
             Uri uriAddress = new Uri(webhook);
             var baseUrl = uriAddress.GetLeftPart(UriPartial.Authority);

@@ -18,19 +18,16 @@ namespace WatchDog.Echo.src.Services
     {
         private bool isProcessing;
         private readonly string[] _urls;
+        private readonly string[] _webhooks;
         private readonly ILogger<ScheduledEchoBackgroundService> _logger;
-        private readonly string _slackBaseUrl;
-        private readonly string _slackChannel;
+        private Dictionary<string, DateTime> alertFrequency;
 
-        public ScheduledEchoBackgroundService(IConfiguration configuration, ILogger<ScheduledEchoBackgroundService> logger)
+        public ScheduledEchoBackgroundService(ILogger<ScheduledEchoBackgroundService> logger)
         {
             _logger = logger;
-            _urls = String.IsNullOrEmpty(MicroService.MicroServicesURL) ? new string[] { } : MicroService.MicroServicesURL.Replace(" ", string.Empty).Split(',');
-            if (!string.IsNullOrEmpty(WebHooks.SlackChannelHook))
-            {
-                (_slackBaseUrl, _slackChannel) = GeneralHelper.SplitSlackHook(WebHooks.SlackChannelHook);
-            }
-
+            alertFrequency = new Dictionary<string, DateTime>();
+            _urls = string.IsNullOrEmpty(MicroService.MicroServicesURL) ? new string[] { } : MicroService.MicroServicesURL.Replace(" ", string.Empty).Split(',');
+            _webhooks = string.IsNullOrEmpty(WebHooks.WebhookURLs) ? new string[] { } : WebHooks.WebhookURLs.Replace(" ", string.Empty).Split(',');
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -64,7 +61,7 @@ namespace WatchDog.Echo.src.Services
         private async Task EchoCallAsync()
         {
             //Initialize Notification Service once
-            var notify = new NotificationServices(_slackBaseUrl, _slackChannel);
+            var notify = new NotificationServices();
             foreach (var url in _urls)
             {
                 try
@@ -72,12 +69,28 @@ namespace WatchDog.Echo.src.Services
                     using var channel = GrpcChannel.ForAddress(url);
                     var client = new EchoRPCService.EchoRPCServiceClient(channel);
                     var reply = await client.SendEchoAsync(new Empty());
-                    _logger.LogInformation($"Echo Response: {reply.StatusCode} - {reply.Message} -- {DateTime.Now}");
+                    _logger.LogInformation($"Echo Response: {reply.StatusCode} - {reply.Message} -- {DateTime.Now} {System.Reflection.Assembly.GetEntryAssembly().GetName().Name}");
                 }
                 catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
                 {
+                    if (!alertFrequency.ContainsKey(url))
+                    {
+                        alertFrequency.Add(url, DateTime.Now);
+                    }
+                    else
+                    {
+                        var difference = DateTime.Now.Subtract(alertFrequency[url]);
+                        if (difference.TotalMinutes < EchoInterval.FailedEchoAlertIntervalInMinutes)
+                            continue;
+                        else
+                            alertFrequency[url] = DateTime.Now;
+                    }
                     //Send Server Down Alert
-                    await notify.SendSlackNotificationAsync("Echo Test server can not echo " + url);
+                    foreach (var webhook in _webhooks)
+                    {
+                        var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.WebhookURLs);
+                        await notify.SendWebhookNotificationAsync($"ALERT!!!\nEcho Test server ({System.Reflection.Assembly.GetEntryAssembly().GetName().Name}) could not echo {url}.\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}", _webhookBaseUrl, _webhookEndpoint);                      
+                    }
                 }
                 catch (Exception ex)
                 {
