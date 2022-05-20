@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WatchDog.Echo.src.Models;
+using WatchDog.Echo.src.Utilities;
 
 namespace WatchDog.Echo.src.Services
 {
@@ -18,11 +19,18 @@ namespace WatchDog.Echo.src.Services
         private bool isProcessing;
         private readonly string[] _urls;
         private readonly ILogger<ScheduledEchoBackgroundService> _logger;
+        private readonly string _slackBaseUrl;
+        private readonly string _slackChannel;
 
         public ScheduledEchoBackgroundService(IConfiguration configuration, ILogger<ScheduledEchoBackgroundService> logger)
         {
             _logger = logger;
             _urls = String.IsNullOrEmpty(MicroService.MicroServicesURL) ? new string[] { } : MicroService.MicroServicesURL.Replace(" ", string.Empty).Split(',');
+            if (!string.IsNullOrEmpty(WebHooks.SlackChannelHook))
+            {
+                (_slackBaseUrl, _slackChannel) = GeneralHelper.SplitSlackHook(WebHooks.SlackChannelHook);
+            }
+
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -37,7 +45,7 @@ namespace WatchDog.Echo.src.Services
                     return;
                 }
 
-                TimeSpan minute = TimeSpan.FromMinutes(EchoInterval.EchoIntervalInMinutes);
+                TimeSpan minute = TimeSpan.FromMinutes((double)EchoInterval.EchoIntervalInMinutes);
                 var start = DateTime.UtcNow;
                 while (true)
                 {
@@ -55,6 +63,8 @@ namespace WatchDog.Echo.src.Services
 
         private async Task EchoCallAsync()
         {
+            //Initialize Notification Service once
+            var notify = new NotificationServices(_slackBaseUrl, _slackChannel);
             foreach (var url in _urls)
             {
                 try
@@ -67,6 +77,7 @@ namespace WatchDog.Echo.src.Services
                 catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
                 {
                     //Send Server Down Alert
+                    await notify.SendSlackNotificationAsync("Echo Test server can not echo " + url);
                 }
                 catch (Exception ex)
                 {
