@@ -97,13 +97,8 @@ namespace WatchDog.Echo.src.Services
                     //Send Server Down Alert
                     foreach (var webhook in _webhooks)
                     {
-                        var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.WebhookURLs);
-                        var message = $"ALERT!!!\nEcho Test server ({System.Reflection.Assembly.GetEntryAssembly().GetName().Name}) could not echo {url}.\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
-                        await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);  
-                        if(!string.IsNullOrEmpty(_toEmailAddress) && _mailSettings != null)
-                        {
-                            await notify.SendEmailNotificationAsync(message, _toEmailAddress, _mailSettings);
-                        }
+                        var fromHost = System.Reflection.Assembly.GetEntryAssembly().GetName().Name;
+                        await HandleNotification(notify, fromHost, url, ex);
                     }
                 }
                 catch (Exception ex)
@@ -129,17 +124,22 @@ namespace WatchDog.Echo.src.Services
             }
             catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
             {
-                var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.WebhookURLs);
-                var message = $"ALERT!!!\nEcho Test server ({url}) could not echo {callerHost}.\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
-                await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);
-                if (!string.IsNullOrEmpty(_toEmailAddress) && _mailSettings != null)
-                {
-                    await notify.SendEmailNotificationAsync(message, _toEmailAddress, _mailSettings);
-                }
+                await HandleNotification(notify, url, callerHost, ex);
             }
             catch (Exception ex)
             {
                 throw ex;
+            }
+        }
+
+        public async Task HandleNotification(NotificationServices notify, string fromUrl, string toUrl, RpcException ex)
+        {
+            var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.WebhookURLs);
+            var message = $"ALERT!!!\nEcho Test server ({fromUrl}) could not echo {toUrl}.\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
+            await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);
+            if (!string.IsNullOrEmpty(_toEmailAddress) && _mailSettings != null)
+            {
+                await notify.SendEmailNotificationAsync(message, _toEmailAddress, _mailSettings);
             }
         }
     }
