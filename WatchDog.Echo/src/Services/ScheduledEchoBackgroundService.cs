@@ -21,6 +21,8 @@ namespace WatchDog.Echo.src.Services
         private readonly string[] _webhooks;
         private readonly ILogger<ScheduledEchoBackgroundService> _logger;
         private Dictionary<string, DateTime> alertFrequency;
+        private readonly string _toEmailAddress;
+        private readonly MailSettings _mailSettings;
 
         public ScheduledEchoBackgroundService(ILogger<ScheduledEchoBackgroundService> logger)
         {
@@ -28,6 +30,8 @@ namespace WatchDog.Echo.src.Services
             alertFrequency = new Dictionary<string, DateTime>();
             _urls = string.IsNullOrEmpty(MicroService.MicroServicesURL) ? new string[] { } : MicroService.MicroServicesURL.Replace(" ", string.Empty).Split(',');
             _webhooks = string.IsNullOrEmpty(WebHooks.WebhookURLs) ? new string[] { } : WebHooks.WebhookURLs.Replace(" ", string.Empty).Split(',');
+            _toEmailAddress = string.IsNullOrEmpty(MailAlerts.ToEmailAddress) ? string.Empty : MailAlerts.ToEmailAddress;
+            _mailSettings = MailConfiguration.MailConfigurations == null ? null : MailConfiguration.MailConfigurations;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -68,8 +72,13 @@ namespace WatchDog.Echo.src.Services
                 {
                     using var channel = GrpcChannel.ForAddress(url);
                     var client = new EchoRPCService.EchoRPCServiceClient(channel);
-                    var reply = await client.SendEchoAsync(new Empty());
+                    var reply = await client.SendEchoAsync(new EchoRequest { IsReverb = true});
                     _logger.LogInformation($"Echo Response: {reply.StatusCode} - {reply.Message} -- {DateTime.Now} {System.Reflection.Assembly.GetEntryAssembly().GetName().Name}");
+                    //Recall Reverb If True
+                    if (reply.IsReverb)
+                    {
+                        await ReverbEchoAsync(url, reply.CallerHost);
+                    }
                 }
                 catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
                 {
@@ -89,13 +98,48 @@ namespace WatchDog.Echo.src.Services
                     foreach (var webhook in _webhooks)
                     {
                         var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.WebhookURLs);
-                        await notify.SendWebhookNotificationAsync($"ALERT!!!\nEcho Test server ({System.Reflection.Assembly.GetEntryAssembly().GetName().Name}) could not echo {url}.\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}", _webhookBaseUrl, _webhookEndpoint);                      
+                        var message = $"ALERT!!!\nEcho Test server ({System.Reflection.Assembly.GetEntryAssembly().GetName().Name}) could not echo {url}.\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
+                        await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);  
+                        if(!string.IsNullOrEmpty(_toEmailAddress) && _mailSettings != null)
+                        {
+                            await notify.SendEmailNotificationAsync(message, _toEmailAddress, _mailSettings);
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
                     throw ex;
                 }
+            }
+        }
+
+
+        private async Task ReverbEchoAsync(string url, string callerHost)
+        {
+            var notify = new NotificationServices();
+            //Try Catch Notify Once
+            try
+            {
+                //Reverb
+
+                using var reverbChannel = GrpcChannel.ForAddress(callerHost);
+                var echoClient = new EchoRPCService.EchoRPCServiceClient(reverbChannel);
+                var reverbReply = await echoClient.ReverbEchoAsync(new Empty());
+
+            }
+            catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
+            {
+                var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.WebhookURLs);
+                var message = $"ALERT!!!\nEcho Test server ({url}) could not echo {callerHost}.\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
+                await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);
+                if (!string.IsNullOrEmpty(_toEmailAddress) && _mailSettings != null)
+                {
+                    await notify.SendEmailNotificationAsync(message, _toEmailAddress, _mailSettings);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
     }

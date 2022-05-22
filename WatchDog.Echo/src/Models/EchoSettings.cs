@@ -12,6 +12,17 @@ namespace WatchDog.Echo.src.Models
         public string? HostURLs { get; set; }
         public string? WebhookURLs { get; set; }
         public string? EmailAddress { get; set; }
+        public MailSettings MailConfig { get; set; }
+    }
+
+
+    public class MailSettings
+    {
+        public string? MailHost { get; set; }
+        public int? MailPort { get; set; }
+        public string? MailPubKey { get; set; }
+        public string? MailSecKey { get; set; }
+        public string? MailFrom { get; set; }
     }
 
     internal class EchoInterval
@@ -27,10 +38,15 @@ namespace WatchDog.Echo.src.Models
 
     internal class WebHooks
     {
-        public static string? WebhookURLs { get; set; }  
+        public static string? WebhookURLs { get; set; }
     }
     internal class MailAlerts
     {
         public static string? ToEmailAddress { get; set; }
+    }
+
+    internal class MailConfiguration
+    {
+        public static MailSettings? MailConfigurations { get; set; }
     }
 }
