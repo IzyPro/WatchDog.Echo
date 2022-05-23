@@ -9,6 +9,7 @@ namespace WatchDog.Echo.src.Models
     {
         public long EchoIntervalInMinutes { get; set; } = Constants.DefaultEchoIntervalinMinutes;
         public long FailedEchoAlertIntervalInMinutes { get; set; } = Constants.FailedEchoAlertIntervalInMinutes;
+        public string ClientHost { get; set; }
         public string? HostURLs { get; set; }
         public string? WebhookURLs { get; set; }
         public string? EmailAddresses { get; set; }
@@ -34,6 +35,7 @@ namespace WatchDog.Echo.src.Models
     internal class MicroService
     {
         public static string? MicroServicesURL { get; set; }
+        public static string? MicroServiceClientHost { get; set; }  
     }
 
     internal class WebHooks

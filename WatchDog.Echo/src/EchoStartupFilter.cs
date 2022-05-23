@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using WatchDog.Echo.src.Services;
+using WatchDog.Echo.src.Utilities;
 
 namespace WatchDog.Echo.src
 {
@@ -15,6 +17,7 @@ namespace WatchDog.Echo.src
         {
             return app =>
             {
+                
                 app.UseRouting();
                 app.UseEndpoints(endpoints =>
                 {

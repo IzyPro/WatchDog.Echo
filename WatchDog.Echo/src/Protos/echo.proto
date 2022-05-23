@@ -15,5 +15,4 @@ message EchoResponse{
 	string message = 1;
 	int32 statusCode = 2;
 	bool isReverb = 3;
-	string callerHost = 4;
 }

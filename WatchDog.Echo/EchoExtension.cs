@@ -27,7 +27,15 @@ namespace WatchDog.Echo
             {
                 options.EnableDetailedErrors = true;
             });
-            services.AddGrpcClient<EchoRPCService.EchoRPCServiceClient>(options => options.Address = new Uri("https://localhost:7068"));
+
+            if (string.IsNullOrEmpty(options.ClientHost))
+            {
+                throw new ArgumentNullException(nameof(options.ClientHost));
+            }
+            else
+            {
+                MicroService.MicroServiceClientHost = options.ClientHost;
+            }
 
             if (options != null && options.HostURLs?.Length > 0)
             {
@@ -66,8 +74,10 @@ namespace WatchDog.Echo
                 MailConfiguration.MailConfigurations = options.MailConfig;
 
                 services.AddHostedService<ScheduledEchoBackgroundService>();
-                services.AddSingleton<IStartupFilter, EchoStartupFilter>();
+                
             }
+
+            services.AddSingleton<IStartupFilter, EchoStartupFilter>();
 
             return services;
         }
