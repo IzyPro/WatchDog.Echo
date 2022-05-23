@@ -74,7 +74,7 @@ namespace WatchDog.Echo.src.Services
                     using var channel = GrpcChannel.ForAddress(url);
                     var client = new EchoRPCService.EchoRPCServiceClient(channel);
                     var reply = await client.SendEchoAsync(new EchoRequest { IsReverb = true});
-                    _logger.LogInformation($"Echo Response: {reply.StatusCode} - {reply.Message} -- {DateTime.Now} -- {Constants.CurrentHost} -- {System.Reflection.Assembly.GetEntryAssembly().GetName().Name}");
+                    _logger.LogInformation($"Echo Response: {reply.StatusCode} - {reply.Message} -- {DateTime.Now} -- {System.Reflection.Assembly.GetEntryAssembly().GetName().Name}");
                     //Recall Reverb If True
                     if (reply.IsReverb)
                     {

@@ -12,7 +12,6 @@ namespace WatchDog.Echo.src.Services
         public override Task<EchoResponse> SendEcho(EchoRequest request, ServerCallContext context)
         {
             var httpContext = context.GetHttpContext();
-            Constants.CurrentHost = context.Peer;
             var callerHost = httpContext.Request.IsHttps ? $"https://{context.Host}" : $"http://{context.Host}";
             return Task.FromResult(new EchoResponse
             {
