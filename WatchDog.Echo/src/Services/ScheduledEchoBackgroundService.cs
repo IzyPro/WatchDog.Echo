@@ -124,7 +124,6 @@ namespace WatchDog.Echo.src.Services
                 var echoClient = new EchoRPCService.EchoRPCServiceClient(reverbChannel);
                 echoClient.WithHost(url);
                 var reverbReply = await echoClient.ReverbEchoAsync(new Empty());
-
             }
             catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
             {

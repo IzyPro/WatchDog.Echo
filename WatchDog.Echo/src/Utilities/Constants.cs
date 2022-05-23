@@ -8,5 +8,7 @@ namespace WatchDog.Echo.src.Utilities
     {
         public const long DefaultEchoIntervalinMinutes = 5;
         public const long FailedEchoAlertIntervalInMinutes = 60;
+
+        public static string? CurrentHost = "";
     }
 }
