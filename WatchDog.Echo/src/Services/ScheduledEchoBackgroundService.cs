@@ -1,13 +1,9 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WatchDog.Echo.src.Models;
@@ -24,6 +20,7 @@ namespace WatchDog.Echo.src.Services
         private Dictionary<string, DateTime> alertFrequency;
         private readonly string[] _toEmailAddresses;
         private readonly MailSettings _mailSettings;
+        private readonly string _clientHost;
 
         public ScheduledEchoBackgroundService(ILogger<ScheduledEchoBackgroundService> logger)
         {
@@ -33,6 +30,8 @@ namespace WatchDog.Echo.src.Services
             _webhooks = string.IsNullOrEmpty(WebHooks.WebhookURLs) ? new string[] { } : WebHooks.WebhookURLs.Replace(" ", string.Empty).Split(',');
             _toEmailAddresses = string.IsNullOrEmpty(MailAlerts.ToEmailAddress) ? new string[] { } : MailAlerts.ToEmailAddress.Replace(" ", string.Empty).Split(',');
             _mailSettings = MailConfiguration.MailConfigurations;
+            _clientHost = MicroService.MicroServiceClientHost;
+            
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -66,7 +65,6 @@ namespace WatchDog.Echo.src.Services
         private async Task EchoCallAsync()
         {
             //Initialize Notification Service once
-            var notify = new NotificationServices();
             foreach (var url in _urls)
             {
                 try
@@ -78,9 +76,9 @@ namespace WatchDog.Echo.src.Services
                     //Recall Reverb If True
                     if (reply.IsReverb)
                     {
-                        var serverHost = "https://localhost:7188"; //Change this value
                         channel.Dispose();
-                        await ReverbEchoAsync(url, serverHost);
+                        //Flip Case
+                        await ReverbEchoAsync(url, _clientHost);
                     }
                 }
                 catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
@@ -100,8 +98,7 @@ namespace WatchDog.Echo.src.Services
                     //Send Server Down Alert
                     foreach (var webhook in _webhooks)
                     {
-                        var fromHost = System.Reflection.Assembly.GetEntryAssembly().GetName().Name;
-                        await HandleNotification(notify, fromHost, url, ex, false);
+                        await HandleNotification(url, ex, false);
                     }
                 }
                 catch (Exception ex)
@@ -112,22 +109,20 @@ namespace WatchDog.Echo.src.Services
         }
 
 
-        private async Task ReverbEchoAsync(string url, string callerHost)
+        private async Task ReverbEchoAsync(string clientHost, string serverHost)
         {
-            var notify = new NotificationServices();
             //Try Catch Notify Once
             try
             {
                 //Reverb
-
-                using var reverbChannel = GrpcChannel.ForAddress(callerHost);
+                using var reverbChannel = GrpcChannel.ForAddress(serverHost);
                 var echoClient = new EchoRPCService.EchoRPCServiceClient(reverbChannel);
-                echoClient.WithHost(url);
+                echoClient.WithHost(clientHost);
                 var reverbReply = await echoClient.ReverbEchoAsync(new Empty());
             }
             catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
             {
-                await HandleNotification(notify, url, callerHost, ex, true);
+                await HandleNotification(serverHost, ex, true);
             }
             catch (Exception ex)
             {
@@ -135,11 +130,13 @@ namespace WatchDog.Echo.src.Services
             }
         }
 
-        public async Task HandleNotification(NotificationServices notify, string fromUrl, string toUrl, RpcException ex, bool isReverb)
+        public async Task HandleNotification(string toUrl, RpcException ex, bool isReverb)
         {
-            var test = isReverb ? "This is reverb" : "";
+            var notify = new NotificationServices();
+            var projectName = System.Reflection.Assembly.GetEntryAssembly().GetName().Name;
+            var action = isReverb ? "reverb" : "echo";
             var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.WebhookURLs);
-            var message = $"{test} ALERT!!!\nEcho Test server ({fromUrl}) could not echo {toUrl}.\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
+            var message = $"ALERT!!!\n{toUrl} failed to respond to {action} from {_clientHost} ({projectName}).\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
             await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);
             if (_toEmailAddresses.Length > 0 && _mailSettings != null)
             {

@@ -26,7 +26,7 @@ namespace WatchDog.Echo.src.Services
             var content = new StringContent(contentObjectJson, Encoding.UTF8, "application/json");
 
             var result = await _client.PostAsync(webhookEndpoint, content);
-            var resultContent = await result.Content.ReadAsStringAsync();
+            //var resultContent = await result.Content.ReadAsStringAsync();
             if (!result.IsSuccessStatusCode)
             {
                 throw new Exception("Task failed.");

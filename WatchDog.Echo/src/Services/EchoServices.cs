@@ -1,9 +1,5 @@
 ﻿using Grpc.Core;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using WatchDog.Echo.src.Utilities;
 
 namespace WatchDog.Echo.src.Services
 {
@@ -28,6 +24,5 @@ namespace WatchDog.Echo.src.Services
                 IsReverb = false,
             });
         }
-
     }
 }
