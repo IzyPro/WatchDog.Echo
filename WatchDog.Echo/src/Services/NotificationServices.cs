@@ -1,9 +1,11 @@
-﻿using System;
+﻿using MimeKit;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using WatchDog.Echo.src.Models;
 
 namespace WatchDog.Echo.src.Services
 {
@@ -29,6 +31,33 @@ namespace WatchDog.Echo.src.Services
             {
                 throw new Exception("Task failed.");
             }
+        }
+
+
+        public async Task SendEmailNotificationAsync(string content, string toEmail, MailSettings mailSettings)
+        {
+            MimeMessage message = new MimeMessage();
+
+            MailboxAddress from = new MailboxAddress("WatchDog Echo", mailSettings.MailFrom);
+            MailboxAddress to = new MailboxAddress("WatchDog Echo Client", toEmail);
+
+            message.From.Add(from);
+            message.To.Add(to);
+            message.Subject = "WatchDog Echo Service Notification";
+
+            BodyBuilder bodyBuilder = new BodyBuilder();
+            bodyBuilder.HtmlBody = content;
+            message.Body = bodyBuilder.ToMessageBody();
+
+            using (var client = new MailKit.Net.Smtp.SmtpClient())
+            {
+                //client.Connect("in-v3.mailjet.com", 465, true);
+                client.Connect(mailSettings.MailHost, (int)mailSettings.MailPort, true);
+                client.Authenticate(mailSettings.MailPubKey, mailSettings.MailSecKey);
+                await client.SendAsync(message);
+                client.Disconnect(true);
+            }
+
         }
     }
 }

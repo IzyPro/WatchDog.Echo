@@ -8,8 +8,10 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using WatchDog.Echo.src;
+using WatchDog.Echo.src.Exceptions;
 using WatchDog.Echo.src.Models;
 using WatchDog.Echo.src.Services;
+using WatchDog.Echo.src.Utilities;
 
 namespace WatchDog.Echo
 {
@@ -33,6 +35,34 @@ namespace WatchDog.Echo
                 MailAlerts.ToEmailAddress = options.EmailAddress;
                 MicroService.MicroServicesURL = options.HostURLs;
                 WebHooks.WebhookURLs = options.WebhookURLs;
+
+                //Handle cases where mail option is passed and not Email Address
+                if(options.MailConfig != null && string.IsNullOrEmpty(options.EmailAddress))
+                {
+                    throw new WatchDogEchoMailSettingsException("Email Address is not passed");
+                }
+
+                if (!string.IsNullOrEmpty(options.EmailAddress))
+                {
+                    if(options.MailConfig == null)
+                    {
+                        //Throw null mail configuration exception
+                        throw new WatchDogEchoMailSettingsException("Null MailSettings Configuration");
+                    }
+                    else
+                    {
+                        var (hasEmptyField, field) = options.MailConfig.IsAnyNullOrEmpty();
+                        if (hasEmptyField)
+                        {
+                            //Throw empty mail settings
+                            throw new WatchDogEchoMailSettingsException($"Mail Settings Property '{field}' has an empty field");
+                        }
+                    }
+                }
+
+                
+
+                MailConfiguration.MailConfigurations = options.MailConfig;
 
                 services.AddHostedService<ScheduledEchoBackgroundService>();
                 services.AddSingleton<IStartupFilter, EchoStartupFilter>();
