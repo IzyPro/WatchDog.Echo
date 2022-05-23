@@ -78,25 +78,25 @@ namespace WatchDog.Echo.src.Services
                     //Recall Reverb If True
                     if (reply.IsReverb)
                     {
-                        var test = "https://localhost:7188";
+                        var serverHost = "https://localhost:7188"; //Change this value
                         channel.Dispose();
-                        await ReverbEchoAsync(url, test);
+                        await ReverbEchoAsync(url, serverHost);
                     }
                 }
                 catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
                 {
-                    //if (!alertFrequency.ContainsKey(url))
-                    //{
-                    //    alertFrequency.Add(url, DateTime.Now);
-                    //}
-                    //else
-                    //{
-                    //    var difference = DateTime.Now.Subtract(alertFrequency[url]);
-                    //    if (difference.TotalMinutes < EchoInterval.FailedEchoAlertIntervalInMinutes)
-                    //        continue;
-                    //    else
-                    //        alertFrequency[url] = DateTime.Now;
-                    //}
+                    if (!alertFrequency.ContainsKey(url))
+                    {
+                        alertFrequency.Add(url, DateTime.Now);
+                    }
+                    else
+                    {
+                        var difference = DateTime.Now.Subtract(alertFrequency[url]);
+                        if (difference.TotalMinutes < EchoInterval.FailedEchoAlertIntervalInMinutes)
+                            continue;
+                        else
+                            alertFrequency[url] = DateTime.Now;
+                    }
                     //Send Server Down Alert
                     foreach (var webhook in _webhooks)
                     {
@@ -144,7 +144,7 @@ namespace WatchDog.Echo.src.Services
             await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);
             if (!string.IsNullOrEmpty(_toEmailAddress) && _mailSettings != null)
             {
-                //await notify.SendEmailNotificationAsync(message, _toEmailAddress, _mailSettings);
+                await notify.SendEmailNotificationAsync(message, _toEmailAddress, _mailSettings);
             }
         }
     }
