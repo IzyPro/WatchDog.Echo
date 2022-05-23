@@ -2,6 +2,7 @@
 using Grpc.Net.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ namespace WatchDog.Echo.src.Services
         private readonly string[] _webhooks;
         private readonly ILogger<ScheduledEchoBackgroundService> _logger;
         private Dictionary<string, DateTime> alertFrequency;
-        private readonly string _toEmailAddress;
+        private readonly string[] _toEmailAddresses;
         private readonly MailSettings _mailSettings;
 
         public ScheduledEchoBackgroundService(ILogger<ScheduledEchoBackgroundService> logger)
@@ -30,8 +31,8 @@ namespace WatchDog.Echo.src.Services
             alertFrequency = new Dictionary<string, DateTime>();
             _urls = string.IsNullOrEmpty(MicroService.MicroServicesURL) ? new string[] { } : MicroService.MicroServicesURL.Replace(" ", string.Empty).Split(',');
             _webhooks = string.IsNullOrEmpty(WebHooks.WebhookURLs) ? new string[] { } : WebHooks.WebhookURLs.Replace(" ", string.Empty).Split(',');
-            _toEmailAddress = string.IsNullOrEmpty(MailAlerts.ToEmailAddress) ? string.Empty : MailAlerts.ToEmailAddress;
-            _mailSettings = MailConfiguration.MailConfigurations == null ? null : MailConfiguration.MailConfigurations;
+            _toEmailAddresses = string.IsNullOrEmpty(MailAlerts.ToEmailAddress) ? new string[] { } : MailAlerts.ToEmailAddress.Replace(" ", string.Empty).Split(',');
+            _mailSettings = MailConfiguration.MailConfigurations;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -73,8 +74,7 @@ namespace WatchDog.Echo.src.Services
                     using var channel = GrpcChannel.ForAddress(url);
                     var client = new EchoRPCService.EchoRPCServiceClient(channel);
                     var reply = await client.SendEchoAsync(new EchoRequest { IsReverb = true});
-                    
-                    _logger.LogInformation($"Echo Response: {reply.StatusCode} - {reply.Message} -- {DateTime.Now} {System.Reflection.Assembly.GetEntryAssembly().GetName().Name}");
+                    _logger.LogInformation($"Echo Response: {reply.StatusCode} - {reply.Message} -- {DateTime.Now} -- {System.Reflection.Assembly.GetEntryAssembly().GetName().Name}");
                     //Recall Reverb If True
                     if (reply.IsReverb)
                     {
@@ -142,9 +142,9 @@ namespace WatchDog.Echo.src.Services
             var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.WebhookURLs);
             var message = $"{test} ALERT!!!\nEcho Test server ({fromUrl}) could not echo {toUrl}.\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
             await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);
-            if (!string.IsNullOrEmpty(_toEmailAddress) && _mailSettings != null)
+            if (_toEmailAddresses.Length > 0 && _mailSettings != null)
             {
-                await notify.SendEmailNotificationAsync(message, _toEmailAddress, _mailSettings);
+                await notify.SendEmailNotificationAsync(message, _toEmailAddresses, _mailSettings);
             }
         }
     }

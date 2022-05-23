@@ -27,22 +27,23 @@ namespace WatchDog.Echo
             {
                 options.EnableDetailedErrors = true;
             });
+            services.AddGrpcClient<EchoRPCService.EchoRPCServiceClient>(options => options.Address = new Uri("https://localhost:7068"));
 
             if (options != null && options.HostURLs?.Length > 0)
             {
                 EchoInterval.EchoIntervalInMinutes = options.EchoIntervalInMinutes;
                 EchoInterval.FailedEchoAlertIntervalInMinutes = options.FailedEchoAlertIntervalInMinutes;
-                MailAlerts.ToEmailAddress = options.EmailAddress;
+                MailAlerts.ToEmailAddress = options.EmailAddresses;
                 MicroService.MicroServicesURL = options.HostURLs;
                 WebHooks.WebhookURLs = options.WebhookURLs;
 
                 //Handle cases where mail option is passed and not Email Address
-                if(options.MailConfig != null && string.IsNullOrEmpty(options.EmailAddress))
+                if(options.MailConfig != null && string.IsNullOrEmpty(options.EmailAddresses))
                 {
-                    throw new WatchDogEchoMailSettingsException("Email Address is not passed");
+                    throw new WatchDogEchoMailSettingsException("Empty Email Address field");
                 }
 
-                if (!string.IsNullOrEmpty(options.EmailAddress))
+                if (!string.IsNullOrEmpty(options.EmailAddresses))
                 {
                     if(options.MailConfig == null)
                     {

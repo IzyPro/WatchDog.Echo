@@ -11,7 +11,7 @@ namespace WatchDog.Echo.src.Models
         public long FailedEchoAlertIntervalInMinutes { get; set; } = Constants.FailedEchoAlertIntervalInMinutes;
         public string? HostURLs { get; set; }
         public string? WebhookURLs { get; set; }
-        public string? EmailAddress { get; set; }
+        public string? EmailAddresses { get; set; }
         public MailSettings MailConfig { get; set; }
     }
 

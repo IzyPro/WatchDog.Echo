@@ -34,15 +34,19 @@ namespace WatchDog.Echo.src.Services
         }
 
 
-        public async Task SendEmailNotificationAsync(string content, string toEmail, MailSettings mailSettings)
+        public async Task SendEmailNotificationAsync(string content, string[] toEmail, MailSettings mailSettings)
         {
             MimeMessage message = new MimeMessage();
 
             MailboxAddress from = new MailboxAddress("WatchDog Echo", mailSettings.MailFrom);
-            MailboxAddress to = new MailboxAddress("WatchDog Echo Client", toEmail);
+            List<MailboxAddress> to = new List<MailboxAddress>();
+            foreach(var email in toEmail)
+            {
+                to.Add(new MailboxAddress("WatchDog Echo Client", email));
+            }
 
             message.From.Add(from);
-            message.To.Add(to);
+            message.To.AddRange(to);
             message.Subject = "WatchDog Echo Service Notification";
 
             BodyBuilder bodyBuilder = new BodyBuilder();

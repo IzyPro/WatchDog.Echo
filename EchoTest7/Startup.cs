@@ -29,7 +29,7 @@ namespace EchoTest7
             services.AddControllers();
             services.AddWatchDogEchoServices(opt =>
             {
-                opt.EchoIntervalInMinutes = 0; opt.HostURLs = "https://localhost:7188"; opt.WebhookURLs = "https://hooks.slack.com/services/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";
+                opt.EchoIntervalInMinutes = 0; opt.HostURLs = "https://localhost:7068/, https://localhost:7188"; opt.WebhookURLs = "https://hooks.slack.com/services/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";
             });
         }
 

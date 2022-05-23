@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+//builder.Services.AddWatchDogEchoServices();
 builder.Services.AddWatchDogEchoServices(opt =>
 {
     opt.EchoIntervalInMinutes = 0; opt.HostURLs = "https://localhost:7188"; opt.WebhookURLs = "https://hooks.slack.com/services/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";
