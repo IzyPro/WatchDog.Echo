@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using WatchDog.Echo.src.Utilities;
 
 namespace WatchDog.Echo.src.Services
 {
@@ -10,11 +11,12 @@ namespace WatchDog.Echo.src.Services
     {
         public override Task<EchoResponse> SendEcho(EchoRequest request, ServerCallContext context)
         {
-            var htppContext = context.GetHttpContext();
-            var callerHost = htppContext.Request.IsHttps ? $"https://{context.Host}" : $"http://{context.Host}";
+            var httpContext = context.GetHttpContext();
+            Constants.CurrentHost = context.Peer;
+            var callerHost = httpContext.Request.IsHttps ? $"https://{context.Host}" : $"http://{context.Host}";
             return Task.FromResult(new EchoResponse
             {
-                Message = "Success",
+                Message = "Echo Successful",
                 StatusCode = (int)StatusCode.OK,
                 IsReverb = request.IsReverb,
                 CallerHost = callerHost
@@ -25,7 +27,7 @@ namespace WatchDog.Echo.src.Services
         {
             return Task.FromResult(new EchoResponse
             {
-                Message = "Success",
+                Message = "Reverb Successful",
                 StatusCode = (int)StatusCode.OK,
                 IsReverb = false,
                 CallerHost = ""

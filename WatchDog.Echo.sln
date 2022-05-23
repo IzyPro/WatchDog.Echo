@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WatchDog.Echo", "WatchDog.E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EchoTest6", "EchoTest6\EchoTest6.csproj", "{9487DD4C-77FE-4830-8DE1-8A6903EEA1AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoWorkerServiceTest", "EchoWorkerServiceTest\EchoWorkerServiceTest.csproj", "{C29CAC04-3159-40E6-87E4-B988A3B1C4DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EchoWorkerServiceTest", "EchoWorkerServiceTest\EchoWorkerServiceTest.csproj", "{C29CAC04-3159-40E6-87E4-B988A3B1C4DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
