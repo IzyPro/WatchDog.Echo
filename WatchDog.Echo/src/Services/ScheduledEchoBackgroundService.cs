@@ -78,7 +78,9 @@ namespace WatchDog.Echo.src.Services
                     //Recall Reverb If True
                     if (reply.IsReverb)
                     {
-                        await ReverbEchoAsync(url, reply.CallerHost);
+                        var serverHost = "https://localhost:7188"; //Change this value
+                        channel.Dispose();
+                        await ReverbEchoAsync(url, serverHost);
                     }
                 }
                 catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
@@ -99,7 +101,7 @@ namespace WatchDog.Echo.src.Services
                     foreach (var webhook in _webhooks)
                     {
                         var fromHost = System.Reflection.Assembly.GetEntryAssembly().GetName().Name;
-                        await HandleNotification(notify, fromHost, url, ex);
+                        await HandleNotification(notify, fromHost, url, ex, false);
                     }
                 }
                 catch (Exception ex)
@@ -120,12 +122,13 @@ namespace WatchDog.Echo.src.Services
 
                 using var reverbChannel = GrpcChannel.ForAddress(callerHost);
                 var echoClient = new EchoRPCService.EchoRPCServiceClient(reverbChannel);
+                echoClient.WithHost(url);
                 var reverbReply = await echoClient.ReverbEchoAsync(new Empty());
 
             }
             catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
             {
-                await HandleNotification(notify, url, callerHost, ex);
+                await HandleNotification(notify, url, callerHost, ex, true);
             }
             catch (Exception ex)
             {
@@ -133,10 +136,11 @@ namespace WatchDog.Echo.src.Services
             }
         }
 
-        public async Task HandleNotification(NotificationServices notify, string fromUrl, string toUrl, RpcException ex)
+        public async Task HandleNotification(NotificationServices notify, string fromUrl, string toUrl, RpcException ex, bool isReverb)
         {
+            var test = isReverb ? "This is reverb" : "";
             var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.WebhookURLs);
-            var message = $"ALERT!!!\nEcho Test server ({fromUrl}) could not echo {toUrl}.\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
+            var message = $"{test} ALERT!!!\nEcho Test server ({fromUrl}) could not echo {toUrl}.\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
             await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);
             if (_toEmailAddresses.Length > 0 && _mailSettings != null)
             {

@@ -27,8 +27,9 @@ namespace WatchDog.Echo
             {
                 options.EnableDetailedErrors = true;
             });
+            services.AddGrpcClient<EchoRPCService.EchoRPCServiceClient>(options => options.Address = new Uri("https://localhost:7068"));
 
-            if (options != null)
+            if (options != null && options.HostURLs?.Length > 0)
             {
                 EchoInterval.EchoIntervalInMinutes = options.EchoIntervalInMinutes;
                 EchoInterval.FailedEchoAlertIntervalInMinutes = options.FailedEchoAlertIntervalInMinutes;
@@ -67,6 +68,7 @@ namespace WatchDog.Echo
                 services.AddHostedService<ScheduledEchoBackgroundService>();
                 services.AddSingleton<IStartupFilter, EchoStartupFilter>();
             }
+
             return services;
         }
         //public static IApplicationBuilder UseWatchDogEcho(this IApplicationBuilder app)
