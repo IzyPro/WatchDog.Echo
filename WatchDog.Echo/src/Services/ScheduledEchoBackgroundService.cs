@@ -73,32 +73,35 @@ namespace WatchDog.Echo.src.Services
                     using var channel = GrpcChannel.ForAddress(url);
                     var client = new EchoRPCService.EchoRPCServiceClient(channel);
                     var reply = await client.SendEchoAsync(new EchoRequest { IsReverb = true});
+                    
                     _logger.LogInformation($"Echo Response: {reply.StatusCode} - {reply.Message} -- {DateTime.Now} {System.Reflection.Assembly.GetEntryAssembly().GetName().Name}");
                     //Recall Reverb If True
                     if (reply.IsReverb)
                     {
-                        await ReverbEchoAsync(url, reply.CallerHost);
+                        var test = "https://localhost:7188";
+                        channel.Dispose();
+                        await ReverbEchoAsync(url, test);
                     }
                 }
                 catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
                 {
-                    if (!alertFrequency.ContainsKey(url))
-                    {
-                        alertFrequency.Add(url, DateTime.Now);
-                    }
-                    else
-                    {
-                        var difference = DateTime.Now.Subtract(alertFrequency[url]);
-                        if (difference.TotalMinutes < EchoInterval.FailedEchoAlertIntervalInMinutes)
-                            continue;
-                        else
-                            alertFrequency[url] = DateTime.Now;
-                    }
+                    //if (!alertFrequency.ContainsKey(url))
+                    //{
+                    //    alertFrequency.Add(url, DateTime.Now);
+                    //}
+                    //else
+                    //{
+                    //    var difference = DateTime.Now.Subtract(alertFrequency[url]);
+                    //    if (difference.TotalMinutes < EchoInterval.FailedEchoAlertIntervalInMinutes)
+                    //        continue;
+                    //    else
+                    //        alertFrequency[url] = DateTime.Now;
+                    //}
                     //Send Server Down Alert
                     foreach (var webhook in _webhooks)
                     {
                         var fromHost = System.Reflection.Assembly.GetEntryAssembly().GetName().Name;
-                        await HandleNotification(notify, fromHost, url, ex);
+                        await HandleNotification(notify, fromHost, url, ex, false);
                     }
                 }
                 catch (Exception ex)
@@ -119,12 +122,13 @@ namespace WatchDog.Echo.src.Services
 
                 using var reverbChannel = GrpcChannel.ForAddress(callerHost);
                 var echoClient = new EchoRPCService.EchoRPCServiceClient(reverbChannel);
+                echoClient.WithHost(url);
                 var reverbReply = await echoClient.ReverbEchoAsync(new Empty());
 
             }
             catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
             {
-                await HandleNotification(notify, url, callerHost, ex);
+                await HandleNotification(notify, url, callerHost, ex, true);
             }
             catch (Exception ex)
             {
@@ -132,14 +136,15 @@ namespace WatchDog.Echo.src.Services
             }
         }
 
-        public async Task HandleNotification(NotificationServices notify, string fromUrl, string toUrl, RpcException ex)
+        public async Task HandleNotification(NotificationServices notify, string fromUrl, string toUrl, RpcException ex, bool isReverb)
         {
+            var test = isReverb ? "This is reverb" : "";
             var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.WebhookURLs);
-            var message = $"ALERT!!!\nEcho Test server ({fromUrl}) could not echo {toUrl}.\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
+            var message = $"{test} ALERT!!!\nEcho Test server ({fromUrl}) could not echo {toUrl}.\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
             await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);
             if (!string.IsNullOrEmpty(_toEmailAddress) && _mailSettings != null)
             {
-                await notify.SendEmailNotificationAsync(message, _toEmailAddress, _mailSettings);
+                //await notify.SendEmailNotificationAsync(message, _toEmailAddress, _mailSettings);
             }
         }
     }
