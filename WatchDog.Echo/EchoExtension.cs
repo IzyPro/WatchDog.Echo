@@ -1,12 +1,7 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Net;
 using System.Runtime.InteropServices;
-using System.Text;
 using WatchDog.Echo.src;
 using WatchDog.Echo.src.Exceptions;
 using WatchDog.Echo.src.Models;
@@ -68,33 +63,11 @@ namespace WatchDog.Echo
                         }
                     }
                 }
-
-                
-
                 MailConfiguration.MailConfigurations = options.MailConfig;
-
                 services.AddHostedService<ScheduledEchoBackgroundService>();
-                
             }
-
             services.AddSingleton<IStartupFilter, EchoStartupFilter>();
-
             return services;
         }
-        //public static IApplicationBuilder UseWatchDogEcho(this IApplicationBuilder app)
-        //{
-        //    app.UseRouting();
-        //    return app.UseEndpoints(endpoints =>
-        //    {
-        //        //Registering an endpoint for non server application (worker service)
-        //        endpoints.MapGet("echo", async context =>
-        //        {
-        //            context.Response.ContentType = "text/html";
-        //            context.Response.StatusCode = (int)HttpStatusCode.OK;
-        //            await context.Response.WriteAsync("Echo is listening");
-        //        });
-        //        endpoints.MapGrpcService<EchoServices>();
-        //    });
-        //}
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using WatchDog.Echo.src.Utilities;
+﻿using WatchDog.Echo.src.Utilities;
 
 namespace WatchDog.Echo.src.Models
 {

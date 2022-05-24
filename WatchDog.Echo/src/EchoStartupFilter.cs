@@ -1,13 +1,10 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
-using System.Text;
 using WatchDog.Echo.src.Services;
-using WatchDog.Echo.src.Utilities;
 
 namespace WatchDog.Echo.src
 {
@@ -17,8 +14,12 @@ namespace WatchDog.Echo.src
         {
             return app =>
             {
-                
                 app.UseRouting();
+
+                bool isIISExpress = String.Compare(Process.GetCurrentProcess().ProcessName, "iisexpress") == 0;
+                if(isIISExpress)
+                    app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+
                 app.UseEndpoints(endpoints =>
                 {
                     //Registering an endpoint for non server application (worker service)
