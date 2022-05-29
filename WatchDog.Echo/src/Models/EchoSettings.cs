@@ -1,4 +1,5 @@
-﻿using WatchDog.Echo.src.Utilities;
+﻿using WatchDog.Echo.src.Enums;
+using WatchDog.Echo.src.Utilities;
 
 namespace WatchDog.Echo.src.Models
 {
@@ -11,6 +12,7 @@ namespace WatchDog.Echo.src.Models
         public string? WebhookURLs { get; set; }
         public string? EmailAddresses { get; set; }
         public MailSettings MailConfig { get; set; }
+        public ProtocolEnum Protocol { get; set; } = ProtocolEnum.gRPC;
     }
 
 
@@ -47,5 +49,9 @@ namespace WatchDog.Echo.src.Models
     internal class MailConfiguration
     {
         public static MailSettings? MailConfigurations { get; set; }
+    }
+    internal class Protocol
+    {
+        public static ProtocolEnum? ProtocolType { get; set; }
     }
 }
