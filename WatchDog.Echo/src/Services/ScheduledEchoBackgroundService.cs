@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using WatchDog.Echo.src.Events;
 using WatchDog.Echo.src.Models;
 using WatchDog.Echo.src.Utilities;
 
@@ -21,6 +22,7 @@ namespace WatchDog.Echo.src.Services
         private readonly string[] _toEmailAddresses;
         private readonly MailSettings _mailSettings;
         private readonly string _clientHost;
+        private EchoEventPublisher echoEventPublisher;
 
         public ScheduledEchoBackgroundService(ILogger<ScheduledEchoBackgroundService> logger)
         {
@@ -138,6 +140,7 @@ namespace WatchDog.Echo.src.Services
             var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.WebhookURLs);
             var message = $"ALERT!!!\n{toUrl} failed to respond to {action} from {_clientHost} ({projectName}).\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
             await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);
+            echoEventPublisher.PublishEvent(_clientHost, toUrl);
             if (_toEmailAddresses.Length > 0 && _mailSettings != null)
             {
                 await notify.SendEmailNotificationAsync(message, _toEmailAddresses, _mailSettings);
