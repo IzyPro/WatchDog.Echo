@@ -4,7 +4,10 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Diagnostics;
 using System.Net;
+using System.Text.Json;
+using WatchDog.Echo.src.Models;
 using WatchDog.Echo.src.Services;
+using WatchDog.Echo.src.Utilities;
 
 namespace WatchDog.Echo.src
 {
@@ -16,10 +19,6 @@ namespace WatchDog.Echo.src
             {
                 app.UseRouting();
 
-                bool isIISExpress = String.Compare(Process.GetCurrentProcess().ProcessName, "iisexpress") == 0;
-                if(isIISExpress)
-                    app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
-
                 app.UseEndpoints(endpoints =>
                 {
                     //Registering an endpoint for non server application (worker service)
@@ -29,7 +28,22 @@ namespace WatchDog.Echo.src
                         context.Response.StatusCode = (int)HttpStatusCode.OK;
                         await context.Response.WriteAsync("Echo is listening");
                     });
-                    endpoints.MapGrpcService<EchoServices>();
+                    if(Protocol.ProtocolType == Enums.ProtocolEnum.gRPC)
+                        endpoints.MapGrpcService<EchoServices>();
+                    else
+                    {
+                        endpoints.MapGet(Constants.RestEndpoint, async context =>
+                        {
+                            context.Response.ContentType = "application/json";
+                            context.Response.StatusCode = (int)HttpStatusCode.OK;
+                            var response = new EchoHTTPResponse
+                            {
+                                Message = "Echo Successful",
+                                StatusCode = (int)HttpStatusCode.OK,
+                            };
+                            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+                        });
+                    }
                 });
                 // Call the next configure method
                 next(app);

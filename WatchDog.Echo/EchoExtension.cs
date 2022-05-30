@@ -18,10 +18,9 @@ namespace WatchDog.Echo
             if (configureOptions != null)
                 configureOptions(options);
 
-            services.AddGrpc(options =>
-            {
-                options.EnableDetailedErrors = true;
-            });
+            Protocol.ProtocolType = options.Protocol;
+            if (Protocol.ProtocolType == src.Enums.ProtocolEnum.gRPC)
+                services.AddGrpc();
 
             if (string.IsNullOrEmpty(options.ClientHost))
             {

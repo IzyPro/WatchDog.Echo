@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WatchDog.Echo.src.Models;
@@ -31,7 +32,7 @@ namespace WatchDog.Echo.src.Services
             _toEmailAddresses = string.IsNullOrEmpty(MailAlerts.ToEmailAddress) ? new string[] { } : MailAlerts.ToEmailAddress.Replace(" ", string.Empty).Split(',');
             _mailSettings = MailConfiguration.MailConfigurations;
             _clientHost = MicroService.MicroServiceClientHost;
-            
+
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -57,12 +58,15 @@ namespace WatchDog.Echo.src.Services
                         remaining = Int16.MaxValue;
                     await Task.Delay(TimeSpan.FromMilliseconds(remaining));
                 }
-                await EchoCallAsync();
+                if (Protocol.ProtocolType == Enums.ProtocolEnum.gRPC)
+                    await EchoGRPCCallAsync();
+                else
+                    await EchoRESTCallAsync();
                 isProcessing = false;
             }
         }
 
-        private async Task EchoCallAsync()
+        private async Task EchoGRPCCallAsync()
         {
             //Initialize Notification Service once
             foreach (var url in _urls)
@@ -71,7 +75,7 @@ namespace WatchDog.Echo.src.Services
                 {
                     using var channel = GrpcChannel.ForAddress(url);
                     var client = new EchoRPCService.EchoRPCServiceClient(channel);
-                    var reply = await client.SendEchoAsync(new EchoRequest { IsReverb = true});
+                    var reply = await client.SendEchoAsync(new EchoRequest { IsReverb = true });
                     _logger.LogInformation($"Echo Response: {reply.StatusCode} - {reply.Message} -- {DateTime.Now} -- {System.Reflection.Assembly.GetEntryAssembly().GetName().Name}");
                     //Recall Reverb If True
                     if (reply.IsReverb)
@@ -83,28 +87,56 @@ namespace WatchDog.Echo.src.Services
                 }
                 catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
                 {
-                    if (!alertFrequency.ContainsKey(url))
-                    {
-                        alertFrequency.Add(url, DateTime.Now);
-                    }
-                    else
-                    {
-                        var difference = DateTime.Now.Subtract(alertFrequency[url]);
-                        if (difference.TotalMinutes < EchoInterval.FailedEchoAlertIntervalInMinutes)
-                            continue;
-                        else
-                            alertFrequency[url] = DateTime.Now;
-                    }
-                    //Send Server Down Alert
-                    foreach (var webhook in _webhooks)
-                    {
-                        await HandleNotification(url, ex, false);
-                    }
+                    await CheckAndSendAlert(url, ex.StatusCode.ToString());
                 }
                 catch (Exception ex)
                 {
                     throw ex;
                 }
+            }
+        }
+
+        private async Task EchoRESTCallAsync()
+        {
+            var restService = new EchoRESTService();
+            foreach (var url in _urls)
+            {
+                try
+                {
+                    var response = await restService.SendRESTEcho(url);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        await CheckAndSendAlert(url, response.StatusCode.ToString());
+                    }
+                }
+                catch (HttpRequestException ex) {
+                    await CheckAndSendAlert(url, ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            }
+        }
+
+        private async Task CheckAndSendAlert(string url, string message)
+        {
+            if (!alertFrequency.ContainsKey(url))
+            {
+                alertFrequency.Add(url, DateTime.Now);
+            }
+            else
+            {
+                var difference = DateTime.Now.Subtract(alertFrequency[url]);
+                if (difference.TotalMinutes < EchoInterval.FailedEchoAlertIntervalInMinutes)
+                    return;
+                else
+                    alertFrequency[url] = DateTime.Now;
+            }
+            //Send Server Down Alert
+            foreach (var webhook in _webhooks)
+            {
+                await HandleNotification(url, message, false, webhook);
             }
         }
 
@@ -122,7 +154,7 @@ namespace WatchDog.Echo.src.Services
             }
             catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
             {
-                await HandleNotification(serverHost, ex, true);
+                await CheckAndSendAlert(serverHost, ex.StatusCode.ToString());
             }
             catch (Exception ex)
             {
@@ -130,13 +162,13 @@ namespace WatchDog.Echo.src.Services
             }
         }
 
-        public async Task HandleNotification(string toUrl, RpcException ex, bool isReverb)
+        public async Task HandleNotification(string toUrl, string ex, bool isReverb, string webhook)
         {
             var notify = new NotificationServices();
             var projectName = System.Reflection.Assembly.GetEntryAssembly().GetName().Name;
             var action = isReverb ? "reverb" : "echo";
-            var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.WebhookURLs);
-            var message = $"ALERT!!!\n{toUrl} failed to respond to {action} from {_clientHost} ({projectName}).\nResponse: {ex.StatusCode}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
+            var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(webhook);
+            var message = $"ALERT!!!\n{toUrl} failed to respond to {action} from {_clientHost} ({projectName}).\nResponse: {ex}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
             await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);
             if (_toEmailAddresses.Length > 0 && _mailSettings != null)
             {
