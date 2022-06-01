@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WatchDog.Echo.src.Events;
 using WatchDog.Echo.src.Models;
 using WatchDog.Echo.src.Utilities;
 
@@ -121,18 +122,18 @@ namespace WatchDog.Echo.src.Services
 
         private async Task CheckAndSendAlert(string url, string message)
         {
-            if (!alertFrequency.ContainsKey(url))
-            {
-                alertFrequency.Add(url, DateTime.Now);
-            }
-            else
-            {
-                var difference = DateTime.Now.Subtract(alertFrequency[url]);
-                if (difference.TotalMinutes < EchoInterval.FailedEchoAlertIntervalInMinutes)
-                    return;
-                else
-                    alertFrequency[url] = DateTime.Now;
-            }
+            //if (!alertFrequency.ContainsKey(url))
+            //{
+            //    alertFrequency.Add(url, DateTime.Now);
+            //}
+            //else
+            //{
+            //    var difference = DateTime.Now.Subtract(alertFrequency[url]);
+            //    if (difference.TotalMinutes < EchoInterval.FailedEchoAlertIntervalInMinutes)
+            //        return;
+            //    else
+            //        alertFrequency[url] = DateTime.Now;
+            //}
             //Send Server Down Alert
             foreach (var webhook in _webhooks)
             {
@@ -170,10 +171,14 @@ namespace WatchDog.Echo.src.Services
             var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(webhook);
             var message = $"ALERT!!!\n{toUrl} failed to respond to {action} from {_clientHost} ({projectName}).\nResponse: {ex}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
             await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);
+            EchoEventPublisher.Instance.PublishEchoFailedEvent(_clientHost, toUrl);
             if (_toEmailAddresses.Length > 0 && _mailSettings != null)
             {
                 await notify.SendEmailNotificationAsync(message, _toEmailAddresses, _mailSettings);
             }
         }
+
+
+
     }
 }
