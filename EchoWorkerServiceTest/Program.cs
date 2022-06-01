@@ -20,7 +20,6 @@ namespace EchoWorkerServiceTest
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddHostedService<Worker>();
-                    services.AddWatchDogEchoServices();
                 });
     }
 }

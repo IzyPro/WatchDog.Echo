@@ -14,18 +14,18 @@ namespace EchoTest8.Controllers
 
 
         private readonly ILogger<WeatherForecastController> _logger;
-        private EchoEventSubscriber _subscriber;   
+        
 
         public WeatherForecastController(ILogger<WeatherForecastController> logger)
         {
             _logger = logger;
-            EchoEventSubscriber _subscriber = new EchoEventSubscriber();
+            
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()
         {
-            _subscriber.Subscribe(e_OnEventFailed);
+            
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateTime.Now.AddDays(index),
@@ -35,9 +35,6 @@ namespace EchoTest8.Controllers
             .ToArray();
         }
 
-        static void e_OnEventFailed(object sender, EchoEventsArgs e)
-        {
-            Console.WriteLine("The host {0} couldnt reach {1}.", e.FromHost, e.ToHost);
-        }
+        
     }
 }

@@ -6,6 +6,7 @@ namespace WatchDog.Echo.src.Events
 {
     class EchoEventPublisher
     {
+
         public void PublishEvent(string fromHost, string toHost)
         {
             EchoEventsArgs args = new EchoEventsArgs();
@@ -27,15 +28,20 @@ namespace WatchDog.Echo.src.Events
         public event EventHandler<EchoEventsArgs> EchoFailedEvent;
     }
 
-    public class EchoEventSubscriber
-    {
-        private EchoEventPublisher _publisher;
+    //public class EchoEventSubscriber
+    //{
+    //    private EchoEventPublisher _publisher;
+
+    //    public EchoEventSubscriber()
+    //    {
+    //        _publisher = new EchoEventPublisher();
+    //    }
         
-        public void Subscribe(EventHandler<EchoEventsArgs> onEchoFailed)
-        {
-            _publisher.EchoFailedEvent += onEchoFailed;
-        }
+    //    public void Subscribe(EventHandler<EchoEventsArgs> onEchoFailed)
+    //    {
+    //        _publisher.EchoFailedEvent += onEchoFailed;
+    //    }
 
 
-    }
+    //}
 }

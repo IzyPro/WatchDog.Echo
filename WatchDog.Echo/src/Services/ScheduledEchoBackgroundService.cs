@@ -34,6 +34,7 @@ namespace WatchDog.Echo.src.Services
             _toEmailAddresses = string.IsNullOrEmpty(MailAlerts.ToEmailAddress) ? new string[] { } : MailAlerts.ToEmailAddress.Replace(" ", string.Empty).Split(',');
             _mailSettings = MailConfiguration.MailConfigurations;
             _clientHost = MicroService.MicroServiceClientHost;
+            echoEventPublisher = new EchoEventPublisher();
 
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -123,18 +124,18 @@ namespace WatchDog.Echo.src.Services
 
         private async Task CheckAndSendAlert(string url, string message)
         {
-            if (!alertFrequency.ContainsKey(url))
-            {
-                alertFrequency.Add(url, DateTime.Now);
-            }
-            else
-            {
-                var difference = DateTime.Now.Subtract(alertFrequency[url]);
-                if (difference.TotalMinutes < EchoInterval.FailedEchoAlertIntervalInMinutes)
-                    return;
-                else
-                    alertFrequency[url] = DateTime.Now;
-            }
+            //if (!alertFrequency.ContainsKey(url))
+            //{
+            //    alertFrequency.Add(url, DateTime.Now);
+            //}
+            //else
+            //{
+            //    var difference = DateTime.Now.Subtract(alertFrequency[url]);
+            //    if (difference.TotalMinutes < EchoInterval.FailedEchoAlertIntervalInMinutes)
+            //        return;
+            //    else
+            //        alertFrequency[url] = DateTime.Now;
+            //}
             //Send Server Down Alert
             foreach (var webhook in _webhooks)
             {
@@ -178,5 +179,6 @@ namespace WatchDog.Echo.src.Services
                 await notify.SendEmailNotificationAsync(message, _toEmailAddresses, _mailSettings);
             }
         }
+
     }
 }
