@@ -178,12 +178,6 @@ namespace WatchDog.Echo.src.Services
             }
         }
 
-        static void e_OnEventFailed(object sender, EchoEventsArgs e)
-        {
-            //Handle Echo Failed Event
-            Console.WriteLine("The host {0} couldnt reach {1}.", e.FromHost, e.ToHost);
-        }
-
 
 
     }
