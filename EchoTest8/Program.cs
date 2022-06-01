@@ -1,3 +1,4 @@
+using EchoTest8.Services;
 using WatchDog.Echo;
 using WatchDog.Echo.src.Enums;
 
@@ -11,6 +12,8 @@ builder.Services.AddWatchDogEchoServices(opt =>
 {
     opt.EchoIntervalInMinutes = 0; opt.ClientHost = "https://localhost:7068"; opt.HostURLs = "https://localhost:44362"; opt.Protocol = ProtocolEnum.REST; opt.WebhookURLs = "https://hooks.slack.com/services/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";
 });
+
+builder.Services.AddHostedService<WorkerBackgroundService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

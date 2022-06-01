@@ -23,7 +23,6 @@ namespace WatchDog.Echo.src.Services
         private readonly string[] _toEmailAddresses;
         private readonly MailSettings _mailSettings;
         private readonly string _clientHost;
-        private EchoEventPublisher echoEventPublisher;
 
         public ScheduledEchoBackgroundService(ILogger<ScheduledEchoBackgroundService> logger)
         {
@@ -34,7 +33,6 @@ namespace WatchDog.Echo.src.Services
             _toEmailAddresses = string.IsNullOrEmpty(MailAlerts.ToEmailAddress) ? new string[] { } : MailAlerts.ToEmailAddress.Replace(" ", string.Empty).Split(',');
             _mailSettings = MailConfiguration.MailConfigurations;
             _clientHost = MicroService.MicroServiceClientHost;
-            echoEventPublisher = new EchoEventPublisher();
 
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -173,12 +171,20 @@ namespace WatchDog.Echo.src.Services
             var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(webhook);
             var message = $"ALERT!!!\n{toUrl} failed to respond to {action} from {_clientHost} ({projectName}).\nResponse: {ex}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
             await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);
-            echoEventPublisher.PublishEvent(_clientHost, toUrl);
+            EchoEventPublisher.Instance.PublishEchoFailedEvent(_clientHost, toUrl);
             if (_toEmailAddresses.Length > 0 && _mailSettings != null)
             {
                 await notify.SendEmailNotificationAsync(message, _toEmailAddresses, _mailSettings);
             }
         }
+
+        static void e_OnEventFailed(object sender, EchoEventsArgs e)
+        {
+            //Handle Echo Failed Event
+            Console.WriteLine("The host {0} couldnt reach {1}.", e.FromHost, e.ToHost);
+        }
+
+
 
     }
 }

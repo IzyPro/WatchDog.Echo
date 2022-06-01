@@ -1,32 +1,24 @@
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using WatchDog.Echo.src.Events;
+﻿using WatchDog.Echo.src.Events;
 
-namespace EchoWorkerServiceTest
+namespace EchoTest8.Services
 {
-    public class Worker : BackgroundService
+    public class WorkerBackgroundService : BackgroundService
     {
-        private readonly ILogger<Worker> _logger;
+        private readonly ILogger<WorkerBackgroundService> _logger;
 
-        public Worker(ILogger<Worker> logger)
+        public WorkerBackgroundService(ILogger<WorkerBackgroundService> logger)
         {
             _logger = logger;
-            
+
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            //var _subscriber = new EchoEventPublisher();
             EchoEventPublisher.Instance.OnEchoFailedEvent += e_OnEventFailed;
             while (!stoppingToken.IsCancellationRequested)
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                
+
                 await Task.Delay(1000, stoppingToken);
             }
         }
