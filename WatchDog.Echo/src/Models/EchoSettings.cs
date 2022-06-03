@@ -8,8 +8,9 @@ namespace WatchDog.Echo.src.Models
         public long EchoIntervalInMinutes { get; set; } = Constants.DefaultEchoIntervalinMinutes;
         public long FailedEchoAlertIntervalInMinutes { get; set; } = Constants.FailedEchoAlertIntervalInMinutes;
         public string ClientHost { get; set; }
-        public string? HostURLs { get; set; }
+        public string? EchoTargetURLs { get; set; }
         public string? WebhookURLs { get; set; }
+        public string? CustomAlertWebhookURL { get; set; }
         public string? EmailAddresses { get; set; }
         public MailSettings MailConfig { get; set; }
         public ProtocolEnum Protocol { get; set; } = ProtocolEnum.gRPC;
@@ -40,6 +41,7 @@ namespace WatchDog.Echo.src.Models
     internal class WebHooks
     {
         public static string? WebhookURLs { get; set; }
+        public static string? CustomAlertWebhookURL { get; set; }
     }
     internal class MailAlerts
     {

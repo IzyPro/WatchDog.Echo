@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using WatchDog.Echo.src.Models;
+using WatchDog.Echo.src.Utilities;
 
 namespace WatchDog.Echo.src.Services
 {
@@ -62,6 +63,23 @@ namespace WatchDog.Echo.src.Services
                 client.Disconnect(true);
             }
 
+        }
+
+
+        public async Task SendCustomAlertWebhookNotificationAsync(string message, string url, DateTime happenedAt)
+        {
+            var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.CustomAlertWebhookURL);
+            _client.BaseAddress = new Uri(_webhookBaseUrl);
+            var description = $"{url} failed to respond to an echo from {MicroService.MicroServiceClientHost}.";
+            var contentObject = new { Description = description, Response = message, Server = url, HappenedAt = happenedAt };
+            var contentObjectJson = JsonSerializer.Serialize(contentObject);
+            var content = new StringContent(contentObjectJson, Encoding.UTF8, "application/json");
+
+            var result = await _client.PostAsync(_webhookEndpoint, content);
+            if (!result.IsSuccessStatusCode)
+            {
+                throw new Exception("Task failed.");
+            }
         }
     }
 }

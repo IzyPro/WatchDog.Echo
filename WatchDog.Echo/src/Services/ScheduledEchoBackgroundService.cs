@@ -23,6 +23,7 @@ namespace WatchDog.Echo.src.Services
         private readonly string[] _toEmailAddresses;
         private readonly MailSettings _mailSettings;
         private readonly string _clientHost;
+        private NotificationServices notify;
 
         public ScheduledEchoBackgroundService(ILogger<ScheduledEchoBackgroundService> logger)
         {
@@ -33,7 +34,7 @@ namespace WatchDog.Echo.src.Services
             _toEmailAddresses = string.IsNullOrEmpty(MailAlerts.ToEmailAddress) ? new string[] { } : MailAlerts.ToEmailAddress.Replace(" ", string.Empty).Split(',');
             _mailSettings = MailConfiguration.MailConfigurations;
             _clientHost = MicroService.MicroServiceClientHost;
-
+            notify = new NotificationServices();
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -122,19 +123,26 @@ namespace WatchDog.Echo.src.Services
 
         private async Task CheckAndSendAlert(string url, string message)
         {
-            //if (!alertFrequency.ContainsKey(url))
-            //{
-            //    alertFrequency.Add(url, DateTime.Now);
-            //}
-            //else
-            //{
-            //    var difference = DateTime.Now.Subtract(alertFrequency[url]);
-            //    if (difference.TotalMinutes < EchoInterval.FailedEchoAlertIntervalInMinutes)
-            //        return;
-            //    else
-            //        alertFrequency[url] = DateTime.Now;
-            //}
+            if (!alertFrequency.ContainsKey(url))
+            {
+                alertFrequency.Add(url, DateTime.Now);
+            }
+            else
+            {
+                var difference = DateTime.Now.Subtract(alertFrequency[url]);
+                if (difference.TotalMinutes < EchoInterval.FailedEchoAlertIntervalInMinutes)
+                    return;
+                else
+                    alertFrequency[url] = DateTime.Now;
+            }
             //Send Server Down Alert
+            EchoEventPublisher.Instance.PublishEchoFailedEvent(_clientHost, url);
+            if (_toEmailAddresses.Length > 0 && _mailSettings != null)
+            {
+                await notify.SendEmailNotificationAsync(message, _toEmailAddresses, _mailSettings);
+            }
+            if (!string.IsNullOrEmpty(WebHooks.CustomAlertWebhookURL))
+                notify.SendCustomAlertWebhookNotificationAsync(message, url, DateTime.Now);
             foreach (var webhook in _webhooks)
             {
                 await HandleNotification(url, message, false, webhook);
@@ -165,20 +173,11 @@ namespace WatchDog.Echo.src.Services
 
         public async Task HandleNotification(string toUrl, string ex, bool isReverb, string webhook)
         {
-            var notify = new NotificationServices();
             var projectName = System.Reflection.Assembly.GetEntryAssembly().GetName().Name;
             var action = isReverb ? "reverb" : "echo";
             var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(webhook);
             var message = $"ALERT!!!\n{toUrl} failed to respond to {action} from {_clientHost} ({projectName}).\nResponse: {ex}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
             await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);
-            EchoEventPublisher.Instance.PublishEchoFailedEvent(_clientHost, toUrl);
-            if (_toEmailAddresses.Length > 0 && _mailSettings != null)
-            {
-                await notify.SendEmailNotificationAsync(message, _toEmailAddresses, _mailSettings);
-            }
         }
-
-
-
     }
 }

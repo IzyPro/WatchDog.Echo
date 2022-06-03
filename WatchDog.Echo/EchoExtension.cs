@@ -31,13 +31,14 @@ namespace WatchDog.Echo
                 MicroService.MicroServiceClientHost = options.ClientHost;
             }
 
-            if (options != null && options.HostURLs?.Length > 0)
+            if (options != null && options.EchoTargetURLs?.Length > 0)
             {
                 EchoInterval.EchoIntervalInMinutes = options.EchoIntervalInMinutes;
                 EchoInterval.FailedEchoAlertIntervalInMinutes = options.FailedEchoAlertIntervalInMinutes;
                 MailAlerts.ToEmailAddress = options.EmailAddresses;
-                MicroService.MicroServicesURL = options.HostURLs;
+                MicroService.MicroServicesURL = options.EchoTargetURLs;
                 WebHooks.WebhookURLs = options.WebhookURLs;
+                WebHooks.CustomAlertWebhookURL = options.CustomAlertWebhookURL;
 
                 //Handle cases where mail option is passed and not Email Address
                 if(options.MailConfig != null && string.IsNullOrEmpty(options.EmailAddresses))
