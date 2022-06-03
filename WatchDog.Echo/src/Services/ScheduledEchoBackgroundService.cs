@@ -111,7 +111,8 @@ namespace WatchDog.Echo.src.Services
                         await CheckAndSendAlert(url, response.StatusCode.ToString());
                     }
                 }
-                catch (HttpRequestException ex) {
+                catch (HttpRequestException ex)
+                {
                     await CheckAndSendAlert(url, ex.Message);
                 }
                 catch (Exception ex)

@@ -1,6 +1,7 @@
 ﻿using MimeKit;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -37,11 +38,11 @@ namespace WatchDog.Echo.src.Services
         public async Task SendEmailNotificationAsync(string url, string content, string[] toEmail, MailSettings mailSettings)
         {
             MimeMessage message = new MimeMessage();
-            var body = $"ALERT!!!\n{url} failed to respond to echo from {MicroService.MicroServiceClientHost}.\nResponse: {content}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
+            var body = $"<img src='https://i.ibb.co/thnngfd/Echo-Signature.png' alt='WatchDog Echo Logo' style='width: 100%;'><pre>\nALERT!!!\n{url} failed to respond to echo from {MicroService.MicroServiceClientHost}.\n\n<b>Response:</b> {content}\n<b>Happened At:</b> {DateTime.Now.ToString("dd /MM/yyyy hh:mm tt")}\n\nSincerely,\nYour WatchDog🐶</pre>";
 
             MailboxAddress from = new MailboxAddress("WatchDog Echo", mailSettings.MailFrom);
             List<MailboxAddress> to = new List<MailboxAddress>();
-            foreach(var email in toEmail)
+            foreach (var email in toEmail)
             {
                 to.Add(new MailboxAddress("WatchDog Echo Client", email));
             }
