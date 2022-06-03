@@ -32,7 +32,7 @@ namespace EchoTest7
                 opt.EchoIntervalInMinutes = 0; 
                 opt.Protocol = ProtocolEnum.REST; 
                 opt.ClientHost = "https://localhost:44378/"; 
-                opt.EchoTargetURLs = "https://localhost:44362/";
+                opt.EchoTargetURLs = "https://localhost:44362/"; 
             }) ;
             }
 

@@ -34,9 +34,10 @@ namespace WatchDog.Echo.src.Services
         }
 
 
-        public async Task SendEmailNotificationAsync(string content, string[] toEmail, MailSettings mailSettings)
+        public async Task SendEmailNotificationAsync(string url, string content, string[] toEmail, MailSettings mailSettings)
         {
             MimeMessage message = new MimeMessage();
+            var body = $"ALERT!!!\n{url} failed to respond to echo from {MicroService.MicroServiceClientHost}.\nResponse: {content}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
 
             MailboxAddress from = new MailboxAddress("WatchDog Echo", mailSettings.MailFrom);
             List<MailboxAddress> to = new List<MailboxAddress>();
@@ -50,7 +51,7 @@ namespace WatchDog.Echo.src.Services
             message.Subject = "WatchDog Echo Service Notification";
 
             BodyBuilder bodyBuilder = new BodyBuilder();
-            bodyBuilder.HtmlBody = content;
+            bodyBuilder.HtmlBody = body;
             message.Body = bodyBuilder.ToMessageBody();
 
             using (var client = new MailKit.Net.Smtp.SmtpClient())

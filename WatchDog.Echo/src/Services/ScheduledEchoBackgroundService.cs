@@ -139,7 +139,7 @@ namespace WatchDog.Echo.src.Services
             EchoEventPublisher.Instance.PublishEchoFailedEvent(_clientHost, url);
             if (_toEmailAddresses.Length > 0 && _mailSettings != null)
             {
-                await notify.SendEmailNotificationAsync(message, _toEmailAddresses, _mailSettings);
+                await notify.SendEmailNotificationAsync(url, message, _toEmailAddresses, _mailSettings);
             }
             if (!string.IsNullOrEmpty(WebHooks.CustomAlertWebhookURL))
                 notify.SendCustomAlertWebhookNotificationAsync(message, url, DateTime.Now);
