@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace WatchDog.Echo.src.Models
+﻿namespace WatchDog.Echo.src.Models
 {
     internal class EchoHTTPResponse
     {

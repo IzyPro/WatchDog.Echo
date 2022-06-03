@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System;
-using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 using WatchDog.Echo.src.Models;

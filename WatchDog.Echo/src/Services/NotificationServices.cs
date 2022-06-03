@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using WatchDog.Echo.src.Models;
+using WatchDog.Echo.src.Utilities;
 
 namespace WatchDog.Echo.src.Services
 {
@@ -26,7 +27,6 @@ namespace WatchDog.Echo.src.Services
             var content = new StringContent(contentObjectJson, Encoding.UTF8, "application/json");
 
             var result = await _client.PostAsync(webhookEndpoint, content);
-            //var resultContent = await result.Content.ReadAsStringAsync();
             if (!result.IsSuccessStatusCode)
             {
                 throw new Exception("Task failed.");
@@ -55,13 +55,25 @@ namespace WatchDog.Echo.src.Services
 
             using (var client = new MailKit.Net.Smtp.SmtpClient())
             {
-                //client.Connect("in-v3.mailjet.com", 465, true);
                 client.Connect(mailSettings.MailHost, (int)mailSettings.MailPort, true);
                 client.Authenticate(mailSettings.MailPubKey, mailSettings.MailSecKey);
                 await client.SendAsync(message);
                 client.Disconnect(true);
             }
 
+        }
+
+
+        public async Task SendCustomAlertWebhookNotificationAsync(string message, string url, DateTime happenedAt)
+        {
+            var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.CustomAlertWebhookURL);
+            _client.BaseAddress = new Uri(_webhookBaseUrl);
+            var description = $"{url} failed to respond to an echo from {MicroService.MicroServiceClientHost}.";
+            var contentObject = new { Description = description, Response = message, Server = url, HappenedAt = happenedAt };
+            var contentObjectJson = JsonSerializer.Serialize(contentObject);
+            var content = new StringContent(contentObjectJson, Encoding.UTF8, "application/json");
+
+            await _client.PostAsync(_webhookEndpoint, content);
         }
     }
 }
