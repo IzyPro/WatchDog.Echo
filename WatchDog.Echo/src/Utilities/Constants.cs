@@ -3,7 +3,7 @@
     internal class Constants
     {
         public const long DefaultEchoIntervalinMinutes = 5;
-        public const long FailedEchoAlertIntervalInMinutes = 60;
+        public const long FailedEchoAlertIntervalInMinutes = 45;
 
         public static string? RestEndpoint = "WatchDogEcho";
     }
