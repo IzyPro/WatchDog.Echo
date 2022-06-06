@@ -1,13 +1,11 @@
 ﻿using MimeKit;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using WatchDog.Echo.src.Models;
-using WatchDog.Echo.src.Utilities;
 
 namespace WatchDog.Echo.src.Services
 {
@@ -20,14 +18,25 @@ namespace WatchDog.Echo.src.Services
             _client = new HttpClient();
         }
 
-        public async Task SendWebhookNotificationAsync(string message, string webhookBaseUrl, string webhookEndpoint)
+        public async Task SendWebhookNotificationAsync(string message, string webhookUrl)
         {
-            _client.BaseAddress = new Uri(webhookBaseUrl);
-            var contentObject = new { text = message };
-            var contentObjectJson = JsonSerializer.Serialize(contentObject);
+            string contentObjectJson;
+            if (webhookUrl.ToLower().Contains("discord"))
+            {
+                var contentObject = new { content = message, username = "", avatar_url = "", tts = false };
+                contentObjectJson = JsonSerializer.Serialize(contentObject);
+            }
+            else
+            {
+                if (webhookUrl.ToLower().Contains("office.com"))
+                    message = $"<pre>{message}</pre>";
+                var contentObject = new { text = message };
+                contentObjectJson = JsonSerializer.Serialize(contentObject);
+            }
             var content = new StringContent(contentObjectJson, Encoding.UTF8, "application/json");
 
-            var result = await _client.PostAsync(webhookEndpoint, content);
+
+            var result = await _client.PostAsync(webhookUrl, content);
             if (!result.IsSuccessStatusCode)
             {
                 throw new Exception("Task failed.");
@@ -38,7 +47,7 @@ namespace WatchDog.Echo.src.Services
         public async Task SendEmailNotificationAsync(string url, string content, string[] toEmail, MailSettings mailSettings)
         {
             MimeMessage message = new MimeMessage();
-            var body = $"<img src='https://i.ibb.co/thnngfd/Echo-Signature.png' alt='WatchDog Echo Logo' style='width: 100%;'><pre>\nALERT!!!\n{url} failed to respond to echo from {MicroService.MicroServiceClientHost}.\n\n<b>Response:</b> {content}\n<b>Happened At:</b> {DateTime.Now.ToString("dd /MM/yyyy hh:mm tt")}\n\nSincerely,\nYour WatchDog🐶</pre>";
+            var body = $"<img src='https://i.ibb.co/thnngfd/Echo-Signature.png' alt='WatchDog Echo Logo' style='width: 100%;'><pre>\nAlert!\n{url} failed to respond to echo from {MicroService.MicroServiceClientHost}.\n\n<b>Response:</b> {content}\n<b>Happened At:</b> {DateTime.Now.ToString("dd /MM/yyyy hh:mm tt")}\n\nSincerely,\nYour WatchDog🐶</pre>";
 
             MailboxAddress from = new MailboxAddress("WatchDog Echo", mailSettings.MailFrom);
             List<MailboxAddress> to = new List<MailboxAddress>();
@@ -49,7 +58,7 @@ namespace WatchDog.Echo.src.Services
 
             message.From.Add(from);
             message.To.AddRange(to);
-            message.Subject = "WatchDog Echo Service Notification";
+            message.Subject = "WatchDog Echo Service Alert";
 
             BodyBuilder bodyBuilder = new BodyBuilder();
             bodyBuilder.HtmlBody = body;
@@ -62,20 +71,17 @@ namespace WatchDog.Echo.src.Services
                 await client.SendAsync(message);
                 client.Disconnect(true);
             }
-
         }
 
 
         public async Task SendCustomAlertWebhookNotificationAsync(string message, string url, DateTime happenedAt)
         {
-            var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(WebHooks.CustomAlertWebhookURL);
-            _client.BaseAddress = new Uri(_webhookBaseUrl);
             var description = $"{url} failed to respond to an echo from {MicroService.MicroServiceClientHost}.";
             var contentObject = new { Description = description, Response = message, Server = url, HappenedAt = happenedAt };
             var contentObjectJson = JsonSerializer.Serialize(contentObject);
             var content = new StringContent(contentObjectJson, Encoding.UTF8, "application/json");
 
-            await _client.PostAsync(_webhookEndpoint, content);
+            await _client.PostAsync(WebHooks.CustomAlertWebhookURL, content);
         }
     }
 }

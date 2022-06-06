@@ -176,9 +176,8 @@ namespace WatchDog.Echo.src.Services
         {
             var projectName = System.Reflection.Assembly.GetEntryAssembly().GetName().Name;
             var action = isReverb ? "reverb" : "echo";
-            var (_webhookBaseUrl, _webhookEndpoint) = GeneralHelper.SplitWebhook(webhook);
-            var message = $"ALERT!!!\n{toUrl} failed to respond to {action} from {_clientHost} ({projectName}).\nResponse: {ex}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}";
-            await notify.SendWebhookNotificationAsync(message, _webhookBaseUrl, _webhookEndpoint);
+            var message = $"ALERT!!!\n{toUrl} failed to respond to {action} from {_clientHost} ({projectName}).\nResponse: {ex}\nHappened At: {DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")}.\n";
+            await notify.SendWebhookNotificationAsync(message, webhook);
         }
     }
 }
