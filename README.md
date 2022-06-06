@@ -33,7 +33,7 @@ To enable WatchDog.Echo echo other services,
 Add WatchDog.Echo Namespace in `Startup.cs` or `Program.cs`
 
 ```c#
-using WatchDog;
+using WatchDog.Echo;
 ```
 
 ### Register WatchDog.Echo service in `Startup.cs` or `Program.cs`
@@ -71,13 +71,13 @@ builder.Services.AddWatchDogEchoServices(opt =>
 });
 ```
 >**NOTE**
->EchoIntervalInMinutes // Interval you want echo to be perfomed in minutes `Required`
->ClientHost // Host(url) of service originating echo `Required`
->EchoTargetURLs // urls of target services, seperated by commas
->Protocol // Echo protocol to use for communication, REST or gRPC
->EmailAddresses // addressess of users you want to send notification to, seperated by commas
->MailConfig // Mail cofiguration for sending email notification
->WebhookURLs // urls of webhook for teams, slack, discord channels seperated by commas
+> - EchoIntervalInMinutes // Interval you want echo to be perfomed in minutes `Required`
+> - ClientHost // Host(url) of service originating echo `Required`
+> - EchoTargetURLs // urls of target services, seperated by commas
+> - Protocol // Echo protocol to use for communication, REST or gRPC
+> - EmailAddresses // addressess of users you want to send notification to, seperated by commas
+> - MailConfig // Mail cofiguration for sending email notification
+> - WebhookURLs // urls of webhook for teams, slack, discord channels seperated by commas
 
 ### Setup in-app event notification `Optional`
 If you decide to perform other actions during failed echos, you can subscribe to an `OnEchoFailedEvent` that is been sent for every failed echo.
