@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WatchDog.Echo.src.Events;
 using WatchDog.Echo.src.Models;
-using WatchDog.Echo.src.Utilities;
 
 namespace WatchDog.Echo.src.Services
 {
@@ -24,6 +23,7 @@ namespace WatchDog.Echo.src.Services
         private readonly MailSettings _mailSettings;
         private readonly string _clientHost;
         private NotificationServices notify;
+        private EchoRESTService restService;
 
         public ScheduledEchoBackgroundService(ILogger<ScheduledEchoBackgroundService> logger)
         {
@@ -35,6 +35,7 @@ namespace WatchDog.Echo.src.Services
             _mailSettings = MailConfiguration.MailConfigurations;
             _clientHost = MicroService.MicroServiceClientHost;
             notify = new NotificationServices();
+            restService = new EchoRESTService();
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -100,7 +101,6 @@ namespace WatchDog.Echo.src.Services
 
         private async Task EchoRESTCallAsync()
         {
-            var restService = new EchoRESTService();
             foreach (var url in _urls)
             {
                 try

@@ -39,7 +39,7 @@ namespace WatchDog.Echo.src.Services
             var result = await _client.PostAsync(webhookUrl, content);
             if (!result.IsSuccessStatusCode)
             {
-                throw new Exception("Task failed.");
+                throw new Exception($"Failed to send webhook nitification for {webhookUrl}.");
             }
         }
 
