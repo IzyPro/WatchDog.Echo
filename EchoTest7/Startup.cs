@@ -28,13 +28,14 @@ namespace EchoTest7
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddWatchDogEchoServices(opt => { 
-                opt.EchoIntervalInMinutes = 0; 
-                opt.Protocol = ProtocolEnum.REST; 
-                opt.ClientHost = "https://localhost:44378/"; 
+            services.AddWatchDogEchoServices(opt =>
+            {
+                opt.EchoIntervalInMinutes = 0;
+                opt.Protocol = ProtocolEnum.REST;
+                opt.ClientHost = "https://localhost:44378/";
                 opt.EchoTargetURLs = "https://localhost:44362/";
-            }) ;
-            }
+            });
+        }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
