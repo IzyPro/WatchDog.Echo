@@ -1,7 +1,6 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -17,7 +16,6 @@ namespace WatchDog.Echo.src.Services
         private bool isProcessing;
         private readonly string[] _urls;
         private readonly string[] _webhooks;
-        private readonly ILogger<ScheduledEchoBackgroundService> _logger;
         private Dictionary<string, DateTime> alertFrequency;
         private readonly string[] _toEmailAddresses;
         private readonly MailSettings _mailSettings;
@@ -25,9 +23,8 @@ namespace WatchDog.Echo.src.Services
         private NotificationServices notify;
         private EchoRESTService restService;
 
-        public ScheduledEchoBackgroundService(ILogger<ScheduledEchoBackgroundService> logger)
+        public ScheduledEchoBackgroundService()
         {
-            _logger = logger;
             alertFrequency = new Dictionary<string, DateTime>();
             _urls = string.IsNullOrEmpty(MicroService.MicroServicesURL) ? new string[] { } : MicroService.MicroServicesURL.Replace(" ", string.Empty).Split(',');
             _webhooks = string.IsNullOrEmpty(WebHooks.WebhookURLs) ? new string[] { } : WebHooks.WebhookURLs.Replace(" ", string.Empty).Split(',');
@@ -79,13 +76,17 @@ namespace WatchDog.Echo.src.Services
                     using var channel = GrpcChannel.ForAddress(url);
                     var client = new EchoRPCService.EchoRPCServiceClient(channel);
                     var reply = await client.SendEchoAsync(new EchoRequest { IsReverb = true });
-                    _logger.LogInformation($"Echo Response: {reply.StatusCode} - {reply.Message} -- {DateTime.Now} -- {System.Reflection.Assembly.GetEntryAssembly().GetName().Name}");
-                    //Recall Reverb If True
-                    if (reply.IsReverb)
+                    if (reply != null)
                     {
-                        channel.Dispose();
-                        //Flip Case
-                        await ReverbEchoAsync(url, _clientHost);
+                        //Recall Reverb If True
+                        if (reply.IsReverb)
+                        {
+                            channel.Dispose();
+                            //Flip Case
+                            await ReverbEchoAsync(url, _clientHost);
+                        }
+                        if (reply.StatusCode == (int)StatusCode.OK)
+                            ClearAlertFrequency(url);
                     }
                 }
                 catch (RpcException ex) when (ex.StatusCode != StatusCode.OK)
@@ -109,6 +110,10 @@ namespace WatchDog.Echo.src.Services
                     if (!response.IsSuccessStatusCode)
                     {
                         await CheckAndSendAlert(url, response.StatusCode.ToString());
+                    }
+                    else
+                    {
+                        ClearAlertFrequency(url);
                     }
                 }
                 catch (HttpRequestException ex)
@@ -148,6 +153,11 @@ namespace WatchDog.Echo.src.Services
             {
                 await HandleNotification(url, message, false, webhook);
             }
+        }
+
+        private void ClearAlertFrequency(string url)
+        {
+            alertFrequency.Remove(url);
         }
 
 

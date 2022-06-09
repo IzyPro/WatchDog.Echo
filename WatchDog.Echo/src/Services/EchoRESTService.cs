@@ -19,8 +19,7 @@ namespace WatchDog.Echo.src.Services
 
         public async Task<HttpResponseMessage> SendRESTEcho(string url)
         {
-            _client.BaseAddress = new Uri(url);
-            return await _client.GetAsync(Constants.RestEndpoint);
+            return await _client.GetAsync(url + Constants.RestEndpoint);
         }
     }
 }

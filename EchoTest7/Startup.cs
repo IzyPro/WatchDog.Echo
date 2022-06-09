@@ -31,6 +31,7 @@ namespace EchoTest7
             services.AddWatchDogEchoServices(opt =>
             {
                 opt.EchoIntervalInMinutes = 0;
+                opt.FailedEchoAlertIntervalInMinutes = 60;
                 opt.Protocol = ProtocolEnum.REST;
                 opt.ClientHost = "https://localhost:44378/";
                 opt.EchoTargetURLs = "https://localhost:44362/";
