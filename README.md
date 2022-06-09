@@ -59,17 +59,6 @@ builder.Services.AddWatchDogEchoServices(opt =>
 });
 ```
 
-
-### Echo Interval - `Optional`
-Time interval between each echo measured in minutes e.g. If set to 5, it sends an echo to all the services listed in the `EchoTargetURLs` every 5 mins
-```c#
-builder.Services.AddWatchDogEchoServices(opt =>
-{
-    opt.EchoIntervalInMinutes = 3; 
-});
-```
-`Default = 5 minutes`
-
 ### Protocol - `Optional`
 Communication Protocol for the service
 ```c#
@@ -81,6 +70,17 @@ builder.Services.AddWatchDogEchoServices(opt =>
 `Default = gRPC`
 >**NOTE:**
 >.NET 3.x service hosted on IIS should utilize REST as gRPC is not supported on IIS for .NET 3.x
+
+
+### Echo Interval - `Optional`
+Time interval between each echo measured in minutes e.g. If set to 5, it sends an echo to all the services listed in the `EchoTargetURLs` every 5 mins
+```c#
+builder.Services.AddWatchDogEchoServices(opt =>
+{
+    opt.EchoIntervalInMinutes = 3; 
+});
+```
+`Default = 5 minutes`
 
 ### Failed Echo Interval - `Optional`
 Time interval between each failed echo alert measured in minutes e.g. If set to 60, when an attempt to echo Service A fails, it sends an alert immediately and then if service A is still down after 60 minutes, it sends another alert. It continues sending an alert every 60 minutes until Service A is back up.
