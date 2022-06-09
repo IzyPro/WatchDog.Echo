@@ -1,3 +1,4 @@
+![WatchDog.Echo Logo](https://i.ibb.co/thnngfd/Echo-Signature.png)
 # WatchDog.Echo
 
 
