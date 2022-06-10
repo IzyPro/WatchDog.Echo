@@ -9,6 +9,7 @@
     <PackageTags>monitoring, observability, microservice, alert, echo, watchdog, downtime, uptime</PackageTags>
     <PackageIcon>Group 11.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
