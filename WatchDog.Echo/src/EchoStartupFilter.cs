@@ -27,22 +27,18 @@ namespace WatchDog.Echo.src
                         context.Response.StatusCode = (int)HttpStatusCode.OK;
                         await context.Response.WriteAsync("Echo is listening");
                     });
-                    if(Protocol.ProtocolType == Enums.ProtocolEnum.gRPC)
-                        endpoints.MapGrpcService<EchoServices>();
-                    else
+                    endpoints.MapGrpcService<EchoServices>();
+                    endpoints.MapGet(Constants.RestEndpoint, async context =>
                     {
-                        endpoints.MapGet(Constants.RestEndpoint, async context =>
+                        context.Response.ContentType = "application/json";
+                        context.Response.StatusCode = (int)HttpStatusCode.OK;
+                        var response = new EchoHTTPResponse
                         {
-                            context.Response.ContentType = "application/json";
-                            context.Response.StatusCode = (int)HttpStatusCode.OK;
-                            var response = new EchoHTTPResponse
-                            {
-                                Message = "Echo Successful",
-                                StatusCode = (int)HttpStatusCode.OK,
-                            };
-                            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
-                        });
-                    }
+                            Message = "Echo Successful",
+                            StatusCode = (int)HttpStatusCode.OK,
+                        };
+                        await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+                    });
                 });
                 // Call the next configure method
                 next(app);
