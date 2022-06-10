@@ -2,6 +2,13 @@
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net6.0</TargetFrameworks>
+    <Authors>Israel Ulelu, Kelechi Onyekwere</Authors>
+    <Description>WatchDog.Echo is a light-weight monitoring and observability tool that helps to validate interoperability between services by notifying developers or project owners when a particular service B is not reachable from a service A, or a list of services are not reachable from a service. It leverages both/either gRPC and REST protocols to send echos between these services and sends alert/notification via Email or to Slack, Microsoft Teams and Discord channels on the event that a particular service is not reachable, enabling developers/projects owners detect service downtime promptly. This package currently targets .Net Core 3.1 and .Net 6.</Description>
+    <PackageProjectUrl>https://github.com/IzyPro/WatchDog.Echo</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/IzyPro/WatchDog.Echo</RepositoryUrl>
+    <PackageTags>monitoring, observability, microservice, alert, echo, watchdog, downtime, uptime</PackageTags>
+    <PackageIcon>Group 11.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,6 +18,18 @@
 
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+	  <None Include="..\..\..\..\Downloads\Group 11.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Include="..\README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 	
   <ItemGroup>

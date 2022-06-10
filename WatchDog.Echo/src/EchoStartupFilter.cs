@@ -27,9 +27,8 @@ namespace WatchDog.Echo.src
                         context.Response.StatusCode = (int)HttpStatusCode.OK;
                         await context.Response.WriteAsync("Echo is listening");
                     });
-                    if(Protocol.ProtocolType == Enums.ProtocolEnum.gRPC)
-                        endpoints.MapGrpcService<EchoServices>();
-                    else
+                    endpoints.MapGrpcService<EchoServices>();
+                    if (Protocol.ProtocolType == Enums.ProtocolEnum.REST)
                     {
                         endpoints.MapGet(Constants.RestEndpoint, async context =>
                         {

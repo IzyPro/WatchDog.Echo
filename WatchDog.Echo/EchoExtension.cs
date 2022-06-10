@@ -19,8 +19,7 @@ namespace WatchDog.Echo
                 configureOptions(options);
 
             Protocol.ProtocolType = options.Protocol;
-            if (Protocol.ProtocolType == src.Enums.ProtocolEnum.gRPC)
-                services.AddGrpc();
+            services.AddGrpc();
 
             if (string.IsNullOrEmpty(options.ClientHost))
             {
@@ -41,14 +40,14 @@ namespace WatchDog.Echo
                 WebHooks.CustomAlertWebhookURL = options.CustomAlertWebhookURL;
 
                 //Handle cases where mail option is passed and not Email Address
-                if(options.MailConfig != null && string.IsNullOrEmpty(options.EmailAddresses))
+                if (options.MailConfig != null && string.IsNullOrEmpty(options.EmailAddresses))
                 {
                     throw new WatchDogEchoMailSettingsException("Empty Email Address field");
                 }
 
                 if (!string.IsNullOrEmpty(options.EmailAddresses))
                 {
-                    if(options.MailConfig == null)
+                    if (options.MailConfig == null)
                     {
                         //Throw null mail configuration exception
                         throw new WatchDogEchoMailSettingsException("Null MailSettings Configuration");
