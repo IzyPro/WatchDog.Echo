@@ -215,6 +215,10 @@ using WatchDog.Echo.src.Events;
 ```
 
 
+### Side Notes
+To manually check if your server is up and running, head to `/echo`, you should get a message that says "Echo is listening".
+>**Example:**
+>https://myserver.com/echo
 
 ## Contribution
 Feel like something is missing? Fork the repo and send a PR.
