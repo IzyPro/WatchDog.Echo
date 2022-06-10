@@ -51,6 +51,7 @@ services.AddWatchDogEchoServices();
 builder.Services.AddWatchDogEchoServices();
 ```
 ## Usage Configurations
+
 ### Client Host - `Required`
 URL of the current service
 ```c#
@@ -102,6 +103,10 @@ builder.Services.AddWatchDogEchoServices(opt =>
     opt.EchoTargetURLs = "https://localhost:44362, https://payment.myserver.com"; 
 });
 ```
+
+>**NOTE:**
+>Package must be Installed on both caller host and target host
+>You don't necessarily need to configure explicit settings on the target host
 
 ### WebhookURLs - `Optional`
 Comma separated list of Webhook URLs for channels where echo alerts will be sent e.g. Slack, Microsoft Teams, Discord etc.
