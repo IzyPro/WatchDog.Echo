@@ -1,6 +1,9 @@
 ![WatchDog.Echo Logo](https://i.ibb.co/thnngfd/Echo-Signature.png)
 # WatchDog.Echo
 
+[![Version](https://img.shields.io/nuget/vpre/WatchDog.Echo)](https://www.nuget.org/packages/WatchDog.NET#versions-tab)
+[![Downloads](https://img.shields.io/nuget/dt/WatchDog.Echo?color=orange)](https://www.nuget.org/packages/WatchDog.NET#versions-tab)
+
 
 ## Introduction
 
